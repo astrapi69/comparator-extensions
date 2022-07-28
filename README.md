@@ -2,21 +2,21 @@
 
 <div style="text-align: center">
 
-[![Java CI with Gradle](https://github.com/astrapi69/java-library-template/actions/workflows/gradle.yml/badge.svg)](https://github.com/astrapi69/java-library-template/actions/workflows/gradle.yml)
-[![Coverage Status](https://codecov.io/gh/astrapi69/java-library-template/branch/develop/graph/badge.svg)](https://codecov.io/gh/astrapi69/java-library-template)
-[![Open Issues](https://img.shields.io/github/issues/astrapi69/java-library-template.svg?style=flat)](https://github.com/astrapi69/java-library-template/issues)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.astrapi69/java-library-template/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.astrapi69/java-library-template)
-[![Javadocs](http://www.javadoc.io/badge/io.github.astrapi69/java-library-template.svg)](http://www.javadoc.io/doc/io.github.astrapi69/java-library-template)
+[![Java CI with Gradle](https://github.com/astrapi69/comparator-extensions/actions/workflows/gradle.yml/badge.svg)](https://github.com/astrapi69/comparator-extensions/actions/workflows/gradle.yml)
+[![Coverage Status](https://codecov.io/gh/astrapi69/comparator-extensions/branch/develop/graph/badge.svg)](https://codecov.io/gh/astrapi69/comparator-extensions)
+[![Open Issues](https://img.shields.io/github/issues/astrapi69/comparator-extensions.svg?style=flat)](https://github.com/astrapi69/comparator-extensions/issues)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.astrapi69/comparator-extensions/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.astrapi69/comparator-extensions)
+[![Javadocs](http://www.javadoc.io/badge/io.github.astrapi69/comparator-extensions.svg)](http://www.javadoc.io/doc/io.github.astrapi69/comparator-extensions)
 [![MIT License](http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](http://opensource.org/licenses/MIT)
 [![Donate](https://img.shields.io/badge/donate-❤-ff2244.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=GVBTWLRAZ7HB8)
-[![Hits Of Code](https://hitsofcode.com/github/astrapi69/java-library-template?branch=develop)](https://hitsofcode.com/github/astrapi69/java-library-template/view?branch=develop)
-[![Lines Of Code](https://tokei.rs/b1/github/astrapi69/java-library-template)](https://github.com/astrapi69/java-library-template)
+[![Hits Of Code](https://hitsofcode.com/github/astrapi69/comparator-extensions?branch=develop)](https://hitsofcode.com/github/astrapi69/comparator-extensions/view?branch=develop)
+[![Lines Of Code](https://tokei.rs/b1/github/astrapi69/comparator-extensions)](https://github.com/astrapi69/comparator-extensions)
 
 </div>
 
-Template project for create java library projects.
+Utility library for extensions for java comparators.
 
-> Please support this project by simply putting a Github <a class="github-button" href="https://github.com/astrapi69/java-library-template" data-icon="octicon-star" aria-label="Star astrapi69/java-library-template on GitHub">
+> Please support this project by simply putting a Github <a class="github-button" href="https://github.com/astrapi69/comparator-extensions" data-icon="octicon-star" aria-label="Star astrapi69/comparator-extensions on GitHub">
 > Star ⭐</a>
 >
 > Share this library with friends on Twitter and everywhere else you can
@@ -24,68 +24,63 @@ Template project for create java library projects.
 > If you love this project
 > [![Donation](https://img.shields.io/badge/donate-❤-ff2244.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=GVBTWLRAZ7HB8)
 
-# Template from this project
-
-You can derive your java library project from this you can easily and adapt to your specific project if you follow the
-instruction from this [medium blog](https://asterios-raptis.medium.com/new-github-template-repository-feature-ec09afe261b8)
-
 ## Note
 
 No animals were harmed in the making of this library.
 
 ## License
 
-The source code comes under the liberal MIT License, making java-library-template great for all types of applications.
+The source code comes under the liberal MIT License, making comparator-extensions great for all types of applications.
 
 ## gradle dependency
 
-Replace the variable ${latestVersion} with the current latest version: [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.astrapi69/java-library-template/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.astrapi69/java-library-template)
+Replace the variable ${latestVersion} with the current latest version: [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.astrapi69/comparator-extensions/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.astrapi69/comparator-extensions)
 
 You can first define the version in the ext section and add than the following gradle dependency to
-your project `build.gradle` if you want to import the core functionality of java-library-template:
+your project `build.gradle` if you want to import the core functionality of comparator-extensions:
 
 define version in file gradle.properties
 
 ```
-javaLibraryTemplateVersion=${latestVersion}
+comparatorExtensionsVersion=${latestVersion}
 ```
 
 or in build.gradle ext area
 
 ```
-    javaLibraryTemplateVersion = "${latestVersion}"
+    comparatorExtensionsVersion = "${latestVersion}"
 ```
 
 then add the dependency to the dependencies area
 
 ```
-    implementation("io.github.astrapi69:java-library-template:$javaLibraryTemplateVersion")
+    implementation("io.github.astrapi69:comparator-extensions:$comparatorExtensionsVersion")
 ```
 
 ## Maven dependency
 
 Maven dependency is now on sonatype.
-Check out [sonatype repository](https://oss.sonatype.org/index.html#nexus-search;gav~io.github.astrapi69~java-library-template~~~) for latest snapshots and releases.
+Check out [sonatype repository](https://oss.sonatype.org/index.html#nexus-search;gav~io.github.astrapi69~comparator-extensions~~~) for latest snapshots and releases.
 
 Add the following maven dependency to your project `pom.xml` if you want to import the core
-functionality of java-library-template:
+functionality of comparator-extensions:
 
 Than you can add the dependency to your dependencies:
 
     <properties>
             ...
-        <!-- java-library-template version -->
-        <java-library-template.version>${latestVersion}</java-library-template.version>
+        <!-- comparator-extensions version -->
+        <comparator-extensions.version>${latestVersion}</comparator-extensions.version>
             ...
     </properties>
             ...
         <dependencies>
             ...
-            <!-- java-library-template DEPENDENCY -->
+            <!-- comparator-extensions DEPENDENCY -->
             <dependency>
                 <groupId>io.github.astrapi69</groupId>
-                <artifactId>java-library-template</artifactId>
-                <version>${java-library-template.version}</version>
+                <artifactId>comparator-extensions</artifactId>
+                <version>${comparator-extensions.version}</version>
             </dependency>
             ...
         </dependencies>
@@ -150,7 +145,7 @@ alt="Donation Monero Wallet" width="250"/>
 
 or over flattr:
 
-<a href="https://flattr.com/submit/auto?fid=r7vp62&url=https%3A%2F%2Fgithub.com%2Fastrapi69%2Fjava-library-template" target="_blank">
+<a href="https://flattr.com/submit/auto?fid=r7vp62&url=https%3A%2F%2Fgithub.com%2Fastrapi69%2Fcomparator-extensions" target="_blank">
 <img src="http://api.flattr.com/button/flattr-badge-large.png" alt="Flattr this" title="Flattr this" style="border: none" />
 </a>
 
@@ -158,7 +153,7 @@ or over the donation buttons at the top.
 
 ## Semantic Versioning
 
-The versions of java-library-template are maintained with the Semantic Versioning guidelines.
+The versions of comparator-extensions are maintained with the Semantic Versioning guidelines.
 
 Release version numbers will be incremented in the following format:
 
@@ -172,18 +167,18 @@ You can donate or contribute solve issues or pull request. Every support are wel
 
 ## Want to Help and improve it? ###
 
-The source code for java-library-template are on GitHub. Please feel free to fork and send pull requests!
+The source code for comparator-extensions are on GitHub. Please feel free to fork and send pull requests!
 
-Create your own fork of [astrapi69/java-library-template/fork](https://github.com/astrapi69/java-library-template/fork)
+Create your own fork of [astrapi69/comparator-extensions/fork](https://github.com/astrapi69/comparator-extensions/fork)
 
-To share your changes, [submit a pull request](https://github.com/astrapi69/java-library-template/pull/new/develop).
+To share your changes, [submit a pull request](https://github.com/astrapi69/comparator-extensions/pull/new/develop).
 
 Don't forget to add new units tests on your changes.
 
 ## Contacting the Developers
 
-Do not hesitate to contact the java-library-template developers with your questions, concerns, comments, bug reports, or feature requests.
-- Feature requests, questions and bug reports can be reported at the [issues page](https://github.com/astrapi69/java-library-template/issues).
+Do not hesitate to contact the comparator-extensions developers with your questions, concerns, comments, bug reports, or feature requests.
+- Feature requests, questions and bug reports can be reported at the [issues page](https://github.com/astrapi69/comparator-extensions/issues).
 
 ## Similar projects
 
