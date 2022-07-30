@@ -24,13 +24,14 @@
  */
 package io.github.astrapi69.comparator;
 
-import io.github.astrapi69.test.object.Person;
-import org.junit.jupiter.api.Test;
-import org.meanbean.test.BeanTester;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.junit.jupiter.api.Test;
+import org.meanbean.test.BeanTester;
+
+import io.github.astrapi69.test.object.Person;
 
 /**
  * The unit test class for the class {@link ComparatorExtensions}.

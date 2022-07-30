@@ -24,17 +24,9 @@
  */
 package io.github.astrapi69.comparator;
 
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
-import org.meanbean.lang.Factory;
-import org.meanbean.test.BeanTestException;
-import org.meanbean.test.BeanTester;
-import org.meanbean.test.Configuration;
-import org.meanbean.test.ConfigurationBuilder;
-
-import java.lang.reflect.InvocationTargetException;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.junit.jupiter.api.Test;
 
 /**
  * The unit test class for the enum class {@link CompareOrder}.
