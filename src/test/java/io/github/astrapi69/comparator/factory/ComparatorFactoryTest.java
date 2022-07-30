@@ -24,8 +24,8 @@
  */
 package io.github.astrapi69.comparator.factory;
 
-import com.google.common.collect.Lists;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -35,8 +35,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import org.junit.jupiter.api.Test;
+import org.meanbean.test.BeanTester;
+
+import com.google.common.collect.Lists;
 
 /**
  * The unit test class for the class {@link ComparatorFactory}
@@ -134,5 +136,15 @@ public class ComparatorFactoryTest
 		Comparator<Integer> randomComparator = ComparatorFactory.newRandomComparator(values,
 			new SecureRandom());
 		assertNotNull(randomComparator);
+	}
+
+	/**
+	 * Test method for {@link ComparatorFactory} with {@link BeanTester}
+	 */
+	@Test
+	public void testWithBeanTester()
+	{
+		final BeanTester beanTester = new BeanTester();
+		beanTester.testBean(ComparatorFactory.class);
 	}
 }
