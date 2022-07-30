@@ -1,12 +1,17 @@
 ## Change log
 ----------------------
 
-Version 1.1-SNAPSHOT
+Version 1.1
 -------------
+
+ADDED:
+
+- new test dependency 'io.github.astrapi69:vintage-time' in version 5.4
 
 CHANGED:
 
 - moved comparator objects from module silly-collections to this module
+- increase of code coverage to 100%
 
 Version 1
 -------------
