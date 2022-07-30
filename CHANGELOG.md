@@ -4,6 +4,9 @@
 Version 1.2-SNAPSHOT
 -------------
 
+CHANGED:
+
+- removed unused dependency lombok 
 
 Version 1.1
 -------------
