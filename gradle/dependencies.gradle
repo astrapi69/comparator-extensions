@@ -4,6 +4,7 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok:$lombokVersion")
     testCompileOnly("org.projectlombok:lombok:$lombokVersion")
     testAnnotationProcessor("org.projectlombok:lombok:$lombokVersion")
+    testImplementation("io.github.astrapi69:vintage-time:$vintageTimeVersion")
     testImplementation("com.google.guava:guava:$guavaVersion")
     testImplementation("io.github.astrapi69:test-objects:$testObjectsVersion")
     testImplementation("io.github.astrapi69:throwable:$throwableVersion")

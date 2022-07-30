@@ -4,6 +4,10 @@
 Version 1.1-SNAPSHOT
 -------------
 
+CHANGED:
+
+- moved comparator objects from module silly-collections to this module
+
 Version 1
 -------------
 
