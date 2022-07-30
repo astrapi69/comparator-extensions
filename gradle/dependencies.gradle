@@ -1,4 +1,3 @@
-
 dependencies {
     testImplementation("io.github.astrapi69:vintage-time:$vintageTimeVersion")
     testImplementation("com.google.guava:guava:$guavaVersion")
