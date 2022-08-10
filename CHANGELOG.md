@@ -4,9 +4,13 @@
 Version 1.2-SNAPSHOT
 -------------
 
+ADDED:
+
+- missing exports in module-info.java for package 'io.github.astrapi69.comparator.object'
+
 CHANGED:
 
-- removed unused dependency lombok 
+- removed unused dependency lombok
 
 Version 1.1
 -------------
