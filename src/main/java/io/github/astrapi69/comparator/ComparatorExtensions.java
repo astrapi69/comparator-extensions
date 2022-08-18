@@ -56,6 +56,59 @@ public final class ComparatorExtensions
 	}
 
 	/**
+	 * Checks if the first given object is greater than the second given object
+	 *
+	 * @param <T>
+	 *            the generic type
+	 * @param object
+	 *            the object
+	 * @param compareWithObject
+	 *            the compare with object
+	 * @return true if the first given object is greater than the second given object otherwise
+	 *         false
+	 */
+	public static <T extends Comparable<T>> Boolean isGreater(final T object,
+		final T compareWithObject)
+	{
+		return 0 < compare(object, compareWithObject);
+	}
+
+	/**
+	 * Checks if the first given object is smaller than the second given object
+	 *
+	 * @param <T>
+	 *            the generic type
+	 * @param object
+	 *            the object
+	 * @param compareWithObject
+	 *            the compare with object
+	 * @return true if the first given object is smaller than the second given object otherwise
+	 *         false
+	 */
+	public static <T extends Comparable<T>> Boolean isSmaller(final T object,
+		final T compareWithObject)
+	{
+		return compare(object, compareWithObject) < 0;
+	}
+
+	/**
+	 * Checks if the first given object is the same as the second given object
+	 *
+	 * @param <T>
+	 *            the generic type
+	 * @param object
+	 *            the object
+	 * @param compareWithObject
+	 *            the compare with object
+	 * @return true if the first given object is same as the second given object otherwise false
+	 */
+	public static <T extends Comparable<T>> Boolean isSame(final T object,
+		final T compareWithObject)
+	{
+		return compare(object, compareWithObject) == 0;
+	}
+
+	/**
 	 * Compares the given objects and returns the int value.
 	 *
 	 * @param <T>

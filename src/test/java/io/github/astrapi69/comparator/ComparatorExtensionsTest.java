@@ -25,6 +25,7 @@
 package io.github.astrapi69.comparator;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -40,6 +41,45 @@ public class ComparatorExtensionsTest
 {
 
 	/**
+	 * Test for method {@link ComparatorExtensions#isSmaller(Comparable, Comparable)}
+	 */
+	@Test
+	public void testIsSmaller()
+	{
+		final Person person = Person.builder().name("al").build();
+		final Person otherPerson = Person.builder().name("bert").build();
+		assertTrue(ComparatorExtensions.isSmaller(person, otherPerson));
+	}
+
+	/**
+	 * Test for method {@link ComparatorExtensions#isGreater(Comparable, Comparable)}
+	 */
+	@Test
+	public void testIsGreater()
+	{
+		final Person person = Person.builder().name("al").build();
+		final Person otherPerson = Person.builder().name("bert").build();
+		assertTrue(ComparatorExtensions.isGreater(otherPerson, person));
+	}
+
+	/**
+	 * Test for method {@link ComparatorExtensions#isSame(Comparable, Comparable)}
+	 */
+	@Test
+	public void testIsSame()
+	{
+		Person person;
+		Person otherPerson;
+		person = Person.builder().name("al").build();
+		otherPerson = Person.builder().name("bert").build();
+		assertFalse(ComparatorExtensions.isSame(otherPerson, person));
+		otherPerson = Person.builder().name("al").build();
+		assertTrue(ComparatorExtensions.isSame(otherPerson, person));
+		assertTrue(ComparatorExtensions.isSame(person, person));
+		assertTrue(ComparatorExtensions.isSame(otherPerson, otherPerson));
+	}
+
+	/**
 	 * Test for method {@link ComparatorExtensions#compare(Comparable, Comparable)}.
 	 */
 	@Test
@@ -51,6 +91,8 @@ public class ComparatorExtensionsTest
 		final Person otherPerson = Person.builder().name("bert").build();
 		actual = ComparatorExtensions.compare(person, otherPerson);
 		assertTrue(actual == -1);
+		actual = ComparatorExtensions.compare(otherPerson, person);
+		assertTrue(actual == 1);
 	}
 
 	/**

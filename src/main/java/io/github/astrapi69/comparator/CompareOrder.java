@@ -32,11 +32,11 @@ import java.util.Comparator;
  */
 public enum CompareOrder
 {
-	/** The order to sort an object after. */
+	/** The order to sort an object after. So the object is greater than the compared object */
 	AFTER(1),
-	/** The order to sort an object before. */
+	/** The order to sort an object before. So the object is smaller than the compared object */
 	BEFORE(-1),
-	/** The order to sort an object as equal. */
+	/** The order to sort an object as equal. So the object is the same as the compared object */
 	EQUAL(0);
 
 	/** The order. */

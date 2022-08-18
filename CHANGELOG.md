@@ -4,6 +4,18 @@
 Version 1.3-SNAPSHOT
 -------------
 
+ADDED:
+
+- new method for check if the first given object is smaller than the second given object
+- new method for check if the first given object is greater than the second given object
+- new method for check if the first given object is same as the second given object
+
+CHANGED:
+
+- update gradle to new version 7.5.1
+- update of com.diffplug.spotless:spotless-plugin-gradle to new minor version 6.9.1
+- replaced package.html files with package-info.java files
+
 Version 1.2
 -------------
 
