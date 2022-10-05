@@ -32,12 +32,31 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TreeSet;
+import java.util.function.Function;
 
 /**
  * A factory for creating custom {@link Comparator} objects
  */
 public class ComparatorFactory
 {
+
+	/**
+	 * Factory method for create a new {@link Comparator} from the given {@link Function} the gets
+	 * the bean property
+	 *
+	 * @param <T>
+	 *            the generic type of the elements
+	 * @param <U>
+	 *            the type of the result of the function
+	 * @param beanPropertyFunction
+	 *            the function used to extract the bean property and create the {@link Comparator}
+	 * @return the new {@link Comparator} from the given {@link Function} the gets the bean property
+	 */
+	public static <T, U extends Comparable<? super U>> Comparator<T> newBeanPropertyComparator(
+		Function<? super T, ? extends U> beanPropertyFunction)
+	{
+		return Comparator.comparing(beanPropertyFunction);
+	}
 
 	/**
 	 * Factory method for create a new {@link Comparator} from the given {@link List} with the
