@@ -4,6 +4,9 @@
 Version 1.4-SNAPSHOT
 -------------
 
+ADDED:
+
+- new factory method for bean comparator for create a comparator from a bean function with null check and order
 
 Version 1.3
 -------------

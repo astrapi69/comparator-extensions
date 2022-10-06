@@ -40,6 +40,10 @@ import java.util.function.Function;
 public class ComparatorFactory
 {
 
+	private ComparatorFactory()
+	{
+	}
+
 	/**
 	 * Factory method for create a new {@link Comparator} from the given {@link Function} the gets
 	 * the bean property
@@ -55,7 +59,33 @@ public class ComparatorFactory
 	public static <T, U extends Comparable<? super U>> Comparator<T> newBeanPropertyComparator(
 		Function<? super T, ? extends U> beanPropertyFunction)
 	{
-		return Comparator.comparing(beanPropertyFunction);
+		return newBeanPropertyComparator(beanPropertyFunction, false, false);
+	}
+
+	/**
+	 * Factory method for create a new {@link Comparator} from the given {@link Function} the gets
+	 * the bean property
+	 *
+	 * @param <T>
+	 *            the generic type of the elements
+	 * @param <U>
+	 *            the type of the result of the function
+	 * @param beanPropertyFunction
+	 *            the function used to extract the bean property and create the {@link Comparator}
+	 * @param nullsFirst
+	 *            if true the sort the null values first otherwise the null values will be at the
+	 *            end
+	 * @param ascending
+	 *            if true the sort will be ascending otherwise descending
+	 * @return the new {@link Comparator} from the given {@link Function} the gets the bean property
+	 */
+	public static <T, U extends Comparable<? super U>> Comparator<T> newBeanPropertyComparator(
+		final Function<? super T, ? extends U> beanPropertyFunction, final boolean nullsFirst,
+		final boolean ascending)
+	{
+		Comparator<U> order = ascending ? Comparator.reverseOrder() : Comparator.naturalOrder();
+		return Comparator.comparing(beanPropertyFunction,
+			nullsFirst ? Comparator.nullsFirst(order) : Comparator.nullsLast(order));
 	}
 
 	/**
