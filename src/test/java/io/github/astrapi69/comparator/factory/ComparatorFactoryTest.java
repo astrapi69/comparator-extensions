@@ -92,8 +92,8 @@ public class ComparatorFactoryTest
 		final Employee employee1 = Employee.builder().person(person1).id("1").build();
 		final Employee employee2 = Employee.builder().person(person2).id("2").build();
 
-		employeeIdComparator = ComparatorFactory
-			.newBeanPropertyComparator(Employee::getId, false, false);
+		employeeIdComparator = ComparatorFactory.newBeanPropertyComparator(Employee::getId, false,
+			false);
 
 		actual = employeeIdComparator.compare(employee1, employee1);
 		expected = actual == 0;
@@ -107,8 +107,8 @@ public class ComparatorFactoryTest
 		expected = actual == 1;
 		assertTrue(expected);
 
-		employeeIdComparator = ComparatorFactory
-			.newBeanPropertyComparator(Employee::getId, false, true);
+		employeeIdComparator = ComparatorFactory.newBeanPropertyComparator(Employee::getId, false,
+			true);
 
 		actual = employeeIdComparator.compare(employee1, employee1);
 		expected = actual == 0;
@@ -122,8 +122,8 @@ public class ComparatorFactoryTest
 		expected = actual == -1;
 		assertTrue(expected);
 
-		employeeIdComparator = ComparatorFactory
-			.newBeanPropertyComparator(Employee::getId, true, true);
+		employeeIdComparator = ComparatorFactory.newBeanPropertyComparator(Employee::getId, true,
+			true);
 
 		actual = employeeIdComparator.compare(employee1, employee1);
 		expected = actual == 0;
@@ -137,8 +137,8 @@ public class ComparatorFactoryTest
 		expected = actual == -1;
 		assertTrue(expected);
 
-		employeeIdComparator = ComparatorFactory
-			.newBeanPropertyComparator(Employee::getId, true, false);
+		employeeIdComparator = ComparatorFactory.newBeanPropertyComparator(Employee::getId, true,
+			false);
 
 		actual = employeeIdComparator.compare(employee1, employee1);
 		expected = actual == 0;
