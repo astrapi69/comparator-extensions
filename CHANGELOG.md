@@ -1,7 +1,7 @@
 ## Change log
 ----------------------
 
-Version 1.5-SNAPSHOT
+Version 1.5
 -------------
 
 ADDED:
@@ -14,6 +14,7 @@ CHANGED:
 - update of com.diffplug.spotless:spotless-plugin-gradle to new minor version 6.12.0
 - update of com.github.ben-manes.versions.gradle.plugin to new minor version 0.44.0
 - update of test dependency test-object to new minor version 7.2
+- increase code coverage
 
 Version 1.4
 -------------
