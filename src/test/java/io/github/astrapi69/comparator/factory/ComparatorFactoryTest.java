@@ -24,8 +24,7 @@
  */
 package io.github.astrapi69.comparator.factory;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -34,11 +33,16 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import org.junit.jupiter.api.Test;
 import org.meanbean.test.BeanTester;
 
 import com.google.common.collect.Lists;
+
+import io.github.astrapi69.comparator.ChainableComparator;
+import io.github.astrapi69.test.object.Employee;
+import io.github.astrapi69.test.object.Person;
 
 /**
  * The unit test class for the class {@link ComparatorFactory}
@@ -69,6 +73,84 @@ public class ComparatorFactoryTest
 		// now the actual list have to be sorted as the values list
 		expected = values;
 		assertEquals(actual, expected);
+	}
+
+	/**
+	 * Test for method
+	 * {@link ComparatorFactory#newBeanPropertyComparator(Function, boolean, boolean)}
+	 */
+	@Test
+	public void testNewBeanPropertyComparator()
+	{
+		int actual;
+		boolean expected;
+		Comparator<Employee> employeeIdComparator;
+
+		final Person person1 = Person.builder().name("Alex").married(Boolean.FALSE).build();
+		final Person person2 = Person.builder().name("John").married(Boolean.FALSE).build();
+
+		final Employee employee1 = Employee.builder().person(person1).id("1").build();
+		final Employee employee2 = Employee.builder().person(person2).id("2").build();
+
+		employeeIdComparator = ComparatorFactory
+			.newBeanPropertyComparator(Employee::getId, false, false);
+
+		actual = employeeIdComparator.compare(employee1, employee1);
+		expected = actual == 0;
+		assertTrue(expected);
+
+		actual = employeeIdComparator.compare(employee1, employee2);
+		expected = actual == -1;
+		assertTrue(expected);
+
+		actual = employeeIdComparator.compare(employee2, employee1);
+		expected = actual == 1;
+		assertTrue(expected);
+
+		employeeIdComparator = ComparatorFactory
+			.newBeanPropertyComparator(Employee::getId, false, true);
+
+		actual = employeeIdComparator.compare(employee1, employee1);
+		expected = actual == 0;
+		assertTrue(expected);
+
+		actual = employeeIdComparator.compare(employee1, employee2);
+		expected = actual == 1;
+		assertTrue(expected);
+
+		actual = employeeIdComparator.compare(employee2, employee1);
+		expected = actual == -1;
+		assertTrue(expected);
+
+		employeeIdComparator = ComparatorFactory
+			.newBeanPropertyComparator(Employee::getId, true, true);
+
+		actual = employeeIdComparator.compare(employee1, employee1);
+		expected = actual == 0;
+		assertTrue(expected);
+
+		actual = employeeIdComparator.compare(employee1, employee2);
+		expected = actual == 1;
+		assertTrue(expected);
+
+		actual = employeeIdComparator.compare(employee2, employee1);
+		expected = actual == -1;
+		assertTrue(expected);
+
+		employeeIdComparator = ComparatorFactory
+			.newBeanPropertyComparator(Employee::getId, true, false);
+
+		actual = employeeIdComparator.compare(employee1, employee1);
+		expected = actual == 0;
+		assertTrue(expected);
+
+		actual = employeeIdComparator.compare(employee1, employee2);
+		expected = actual == -1;
+		assertTrue(expected);
+
+		actual = employeeIdComparator.compare(employee2, employee1);
+		expected = actual == 1;
+		assertTrue(expected);
 	}
 
 	/**
