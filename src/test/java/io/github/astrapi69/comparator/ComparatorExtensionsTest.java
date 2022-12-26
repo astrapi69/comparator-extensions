@@ -46,9 +46,18 @@ public class ComparatorExtensionsTest
 	@Test
 	public void testIsSmaller()
 	{
-		final Person person = Person.builder().name("al").build();
-		final Person otherPerson = Person.builder().name("bert").build();
-		assertTrue(ComparatorExtensions.isSmaller(person, otherPerson));
+		boolean actual;
+		Person person;
+		Person otherPerson;
+
+		person = Person.builder().name("al").build();
+		otherPerson = Person.builder().name("bert").build();
+
+		actual = ComparatorExtensions.isSmaller(person, otherPerson);
+		assertTrue(actual);
+
+		actual = ComparatorExtensions.isSmaller(otherPerson, person);
+		assertFalse(actual);
 	}
 
 	/**
@@ -57,9 +66,18 @@ public class ComparatorExtensionsTest
 	@Test
 	public void testIsGreater()
 	{
-		final Person person = Person.builder().name("al").build();
-		final Person otherPerson = Person.builder().name("bert").build();
-		assertTrue(ComparatorExtensions.isGreater(otherPerson, person));
+		boolean actual;
+		Person person;
+		Person otherPerson;
+
+		person = Person.builder().name("al").build();
+		otherPerson = Person.builder().name("bert").build();
+
+		actual = ComparatorExtensions.isGreater(person, otherPerson);
+		assertFalse(actual);
+
+		actual = ComparatorExtensions.isGreater(otherPerson, person);
+		assertTrue(actual);
 	}
 
 	/**
