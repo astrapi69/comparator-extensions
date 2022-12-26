@@ -24,17 +24,18 @@
  */
 package io.github.astrapi69.comparator;
 
-import io.github.astrapi69.comparator.factory.ComparatorFactory;
-import io.github.astrapi69.test.object.Employee;
-import io.github.astrapi69.test.object.Person;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Comparator;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
+
+import io.github.astrapi69.comparator.factory.ComparatorFactory;
+import io.github.astrapi69.test.object.Employee;
+import io.github.astrapi69.test.object.Person;
 
 
 /**

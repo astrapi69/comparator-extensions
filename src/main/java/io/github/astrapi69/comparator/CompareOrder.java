@@ -39,7 +39,7 @@ public enum CompareOrder
 	/** The order to sort an object as equal. So the object is the same as the compared object */
 	EQUAL(0);
 
-	/** The order. */
+	/** The order */
 	private final int order;
 
 	CompareOrder(final int order)
@@ -47,6 +47,11 @@ public enum CompareOrder
 		this.order = order;
 	}
 
+	/**
+	 * Gets the order
+	 * 
+	 * @return the order
+	 */
 	public int getOrder()
 	{
 		return order;

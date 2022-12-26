@@ -83,9 +83,16 @@ public class NullCheckComparator<T> implements Comparator<T>, Serializable
 		this.nullIsGreaterThan = nullIsGreaterThan;
 	}
 
+	/**
+	 * Factory method to create a new {@link NullCheckComparatorBuilder} object
+	 *
+	 * @param <T>
+	 *            the generic type of the {@link Comparator} object that will be decorated
+	 * @return the new created {@link NullCheckComparatorBuilder} object
+	 */
 	public static <T> NullCheckComparatorBuilder<T> builder()
 	{
-		return new NullCheckComparatorBuilder<T>();
+		return new NullCheckComparatorBuilder<>();
 	}
 
 	/**
@@ -132,11 +139,18 @@ public class NullCheckComparator<T> implements Comparator<T>, Serializable
 			this.nullIsGreaterThan);
 		if (nullCheck != null)
 		{
-			return nullCheck.intValue();
+			return nullCheck;
 		}
 		return this.decoratedComparator.compare(object, compareWithObject);
 	}
 
+	/**
+	 * The class {@link NullCheckComparatorBuilder} is the builder for the
+	 * {@link NullCheckComparator} object
+	 *
+	 * @param <T>
+	 *            the generic type of the {@link Comparator} object that will be decorated
+	 */
 	public static class NullCheckComparatorBuilder<T>
 	{
 
@@ -148,11 +162,23 @@ public class NullCheckComparator<T> implements Comparator<T>, Serializable
 		{
 		}
 
+		/**
+		 * Build method to create a new {@link NullCheckComparator} object
+		 *
+		 * @return the new {@link NullCheckComparator} object
+		 */
 		public NullCheckComparator<T> build()
 		{
-			return new NullCheckComparator<T>(decoratedComparator, nullIsGreaterThan);
+			return new NullCheckComparator<>(decoratedComparator, nullIsGreaterThan);
 		}
 
+		/**
+		 * Sets the decorated {@link Comparator} object
+		 *
+		 * @param decoratedComparator
+		 *            the {@link Comparator} object that will be decorated
+		 * @return this {@link NullCheckComparatorBuilder} object
+		 */
 		public NullCheckComparatorBuilder<T> decoratedComparator(
 			final Comparator<T> decoratedComparator)
 		{
@@ -160,12 +186,22 @@ public class NullCheckComparator<T> implements Comparator<T>, Serializable
 			return this;
 		}
 
+		/**
+		 * Sets the flag that specifies if null objects is greater than non-null objects
+		 *
+		 * @param nullIsGreaterThan
+		 *            the flag that specifies if null objects is greater than non-null objects
+		 * @return this {@link NullCheckComparatorBuilder} object
+		 */
 		public NullCheckComparatorBuilder<T> nullIsGreaterThan(final boolean nullIsGreaterThan)
 		{
 			this.nullIsGreaterThan = nullIsGreaterThan;
 			return this;
 		}
 
+		/**
+		 * {@inheritDoc}
+		 */
 		@Override
 		public String toString()
 		{

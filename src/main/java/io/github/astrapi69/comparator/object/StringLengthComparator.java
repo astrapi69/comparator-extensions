@@ -40,6 +40,9 @@ import io.github.astrapi69.comparator.SortOrderComparator;
 public class StringLengthComparator extends SortOrderComparator<String>
 {
 
+	/**
+	 * Instantiates a new {@link StringLengthComparator} object
+	 */
 	public StringLengthComparator()
 	{
 	}

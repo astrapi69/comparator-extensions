@@ -4,6 +4,16 @@
 Version 1.5-SNAPSHOT
 -------------
 
+ADDED:
+
+- new file importorder.properties that defines the order of the imports while formatting with spotless
+
+CHANGED:
+
+- update gradle to new version 7.6
+- update of com.diffplug.spotless:spotless-plugin-gradle to new minor version 6.12.0
+- update of com.github.ben-manes.versions.gradle.plugin to new minor version 0.44.0
+- update of test dependency test-object to new minor version 7.2
 
 Version 1.4
 -------------
