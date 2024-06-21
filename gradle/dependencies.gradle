@@ -1,10 +1,10 @@
 dependencies {
-    implementation("org.apache.commons:commons-collections4:$commonsCollections4Version")
-    testImplementation("io.github.astrapi69:vintage-time:$vintageTimeVersion")
-    testImplementation("com.google.guava:guava:$guavaVersion")
-    testImplementation("io.github.astrapi69:test-object:$testObjectVersion")
-    testImplementation("io.github.astrapi69:throwable:$throwableVersion")
-    testImplementation("org.meanbean:meanbean:$meanbeanVersion")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
+    implementation libs.commons.collections4
+
+    testImplementation libs.vintage.time
+    testImplementation libs.guava
+    testImplementation libs.throwable
+    // Note: use of bundles...
+    testImplementation libs.bundles.unit.testing
+    testRuntimeOnly libs.junit.platform.launcher
 }

@@ -1,9 +1,12 @@
 ## Change log
 ----------------------
 
-Version 1.6-SNAPSHOT
+Version 2-SNAPSHOT
 -------------
 
+ADDED:
+
+- new libs.versions.toml file for new automatic catalog versions update
 
 
 Version 1.5
