@@ -1,17 +1,17 @@
 [versions]
-commons-collections4-version = "4.4"
+commons-collections4-version = "4.5.0-M2"
 gradle-plugin-grgit-version = "5.2.2"
 gradle-plugin-license-version = "0.16.1"
 gradle-plugin-spotless-version = "7.0.0.BETA1"
 gradle-plugin-version-catalog-update-version = "0.8.4"
 gradle-plugin-versions-version = "0.51.0"
-guava-version = "31.1-jre"
+guava-version = "33.2.1-jre"
 junit-jupiter-version = "5.11.0-M2"
 junit-platform-launcher-version = "1.11.0-M2"
 meanbean-version = "2.0.3"
-test-object-version = "7.2"
+test-object-version = "8.2"
 throwable-version = "2.3"
-vintage-time-version = "5.4"
+vintage-time-version = "6"
 
 [libraries]
 commons-collections4 = { module = "org.apache.commons:commons-collections4", version.ref = "commons-collections4-version" }

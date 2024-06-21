@@ -8,6 +8,19 @@ ADDED:
 
 - new libs.versions.toml file for new automatic catalog versions update
 
+CHANGED:
+
+- update to jdk version 17
+- update gradle to new version 8.8
+- update of gradle plugin dependency com.github.ben-manes.versions.gradle.plugin to new version 0.51.0
+- update of gradle-plugin dependency 'org.ajoberstar.grgit:grgit-gradle' to new version 5.2.2
+- update of gradle plugin dependency 'com.diffplug.spotless:spotless-plugin-gradle' to new version 7.0.0.BETA1
+- update of dependency commons-collections4 version to 4.5.0-M2
+- update of test dependency guava version to 33.2.1-jre
+- update of test dependency test-objects to new version 8.2
+- update of test dependency vintage-time to new version 6
+- update of test dependency junit.jupiter.api to new patch version 5.11.0-M2
+- update of test dependency junit-platform-launcher to new version 1.11.0-M2
 
 Version 1.5
 -------------

@@ -35,8 +35,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import io.github.astrapi69.BaseComparatorTestCase;
 import io.github.astrapi69.date.CreateDateExtensions;
+import io.github.astrapi69.test.base.BaseComparatorTestCase;
 
 /**
  * The unit test class for the class {@link DateComparator}
