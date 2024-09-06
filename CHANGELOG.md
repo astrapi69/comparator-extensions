@@ -1,7 +1,7 @@
 ## Change log
 ----------------------
 
-Version 2-SNAPSHOT
+Version 2
 -------------
 
 ADDED:
@@ -10,6 +10,8 @@ ADDED:
 
 CHANGED:
 
+- rename of module to new name 'io.github.astrapisixtynine.comparator.extensions'
+- major version to 2.*
 - update to jdk version 17
 - update gradle to new version 8.10
 - update of gradle plugin dependency com.github.ben-manes.versions.gradle.plugin to new version 0.51.0
