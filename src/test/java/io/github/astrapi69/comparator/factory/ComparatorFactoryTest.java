@@ -40,7 +40,6 @@ import org.meanbean.test.BeanTester;
 
 import com.google.common.collect.Lists;
 
-import io.github.astrapi69.comparator.ChainableComparator;
 import io.github.astrapi69.test.object.Employee;
 import io.github.astrapi69.test.object.Person;
 
