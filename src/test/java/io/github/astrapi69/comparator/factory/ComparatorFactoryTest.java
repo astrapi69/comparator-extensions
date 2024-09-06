@@ -24,7 +24,9 @@
  */
 package io.github.astrapi69.comparator.factory;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
