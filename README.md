@@ -5,12 +5,11 @@
 [![Java CI with Gradle](https://github.com/astrapi69/comparator-extensions/actions/workflows/gradle.yml/badge.svg)](https://github.com/astrapi69/comparator-extensions/actions/workflows/gradle.yml)
 [![Coverage Status](https://codecov.io/gh/astrapi69/comparator-extensions/branch/develop/graph/badge.svg)](https://codecov.io/gh/astrapi69/comparator-extensions)
 [![Open Issues](https://img.shields.io/github/issues/astrapi69/comparator-extensions.svg?style=flat)](https://github.com/astrapi69/comparator-extensions/issues)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.astrapi69/comparator-extensions/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.astrapi69/comparator-extensions)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.astrapi69/comparator-extensions)](https://central.sonatype.com/artifact/io.github.astrapi69/comparator-extensions)
 [![Javadocs](http://www.javadoc.io/badge/io.github.astrapi69/comparator-extensions.svg)](http://www.javadoc.io/doc/io.github.astrapi69/comparator-extensions)
 [![MIT License](http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](http://opensource.org/licenses/MIT)
 [![Donate](https://img.shields.io/badge/donate-❤-ff2244.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=GVBTWLRAZ7HB8)
 [![Hits Of Code](https://hitsofcode.com/github/astrapi69/comparator-extensions?branch=develop)](https://hitsofcode.com/github/astrapi69/comparator-extensions/view?branch=develop)
-[![Lines Of Code](https://tokei.rs/b1/github/astrapi69/comparator-extensions)](https://github.com/astrapi69/comparator-extensions)
 
 </div>
 
@@ -34,7 +33,7 @@ The source code comes under the liberal MIT License, making comparator-extension
 
 ## gradle dependency
 
-Replace the variable ${latestVersion} with the current latest version: [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.astrapi69/comparator-extensions/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.astrapi69/comparator-extensions)
+Replace the variable ${latestVersion} with the current latest version: [![Maven Central](https://img.shields.io/maven-central/v/io.github.astrapi69/comparator-extensions)](https://central.sonatype.com/artifact/io.github.astrapi69/comparator-extensions)
 
 You can first define the version in the ext section and add than the following gradle dependency to
 your project `build.gradle` if you want to import the core functionality of comparator-extensions:
@@ -59,8 +58,7 @@ then add the dependency to the dependencies area
 
 ## Maven dependency
 
-Maven dependency is now on sonatype.
-Check out [sonatype repository](https://oss.sonatype.org/index.html#nexus-search;gav~io.github.astrapi69~comparator-extensions~~~) for latest snapshots and releases.
+The library is on Maven Central. Check out [Maven Central](https://central.sonatype.com/artifact/io.github.astrapi69/comparator-extensions) for the latest release.
 
 Add the following maven dependency to your project `pom.xml` if you want to import the core
 functionality of comparator-extensions:
