@@ -4,6 +4,14 @@
 Version 3.1-SNAPSHOT
 -------------
 
+CHANGED:
+
+- `HELP.md` is removed: it was the help of the project template this repository was made from, how
+  to rename a project cloned from it through an `InitialTemplateTest` this repository does not
+  have, and how to set the OSSRH user name and password, which no build script reads since
+  releases go through the Central Portal (#12). The secrets a release needs are listed at the top
+  of `publish.yml` (#16)
+
 Version 3
 -------------
 
