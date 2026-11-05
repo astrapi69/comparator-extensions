@@ -24,14 +24,16 @@
  */
 package io.github.astrapi69.comparator;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import io.github.astrapi69.comparator.factory.ComparatorFactory;
 import io.github.astrapi69.test.object.Employee;
@@ -44,112 +46,106 @@ import io.github.astrapi69.test.object.Person;
 public class ChainableComparatorTest
 {
 
-	/** For use of the result of the comparator. */
-	int actual;
+	/** The employee with the id 1, Alex. */
+	static final Employee FIRST = Employee.builder()
+		.person(Person.builder().name("Alex").married(Boolean.FALSE).build()).id("1").build();
 
-	/** The comparator. */
-	ChainableComparator<Employee> comparator;
-
-	/** For use of the expected result. */
-	boolean expected;
+	/** The employee with the id 2, John. */
+	static final Employee SECOND = Employee.builder()
+		.person(Person.builder().name("John").married(Boolean.FALSE).build()).id("2").build();
 
 	/**
-	 * Test method for {@link ChainableComparator#compare(Object, Object)}
+	 * Two employees, the chain that compares them and the sign of the result
+	 *
+	 * @param description
+	 *            the name of the case
+	 * @param chain
+	 *            the chain
+	 * @param object
+	 *            the first employee
+	 * @param compareWithObject
+	 *            the employee to compare with
+	 * @param expectedSign
+	 *            the sign of the result: -1, 0 or 1
 	 */
-	@Test
-	public void testCompare()
+	record ChainComparison(String description, Comparator<Employee> chain, Employee object,
+		Employee compareWithObject, int expectedSign) {
+		@Override
+		public String toString()
+		{
+			return description;
+		}
+	}
+
+	/**
+	 * The cases of a chain whose first comparator orders the employees by their id: an employee is
+	 * equal to itself, and the employee with the id 1 comes first, or last if the chain reverses
+	 * that comparator
+	 *
+	 * @param name
+	 *            the name of the chain
+	 * @param chain
+	 *            the chain
+	 * @param reversed
+	 *            whether the chain reverses the comparator by id
+	 * @return the cases
+	 */
+	static Stream<ChainComparison> order(final String name, final Comparator<Employee> chain,
+		final boolean reversed)
 	{
+		return Stream.of(
+			new ChainComparison(name + ", id 1 with itself: zero", chain, FIRST, FIRST, 0),
+			new ChainComparison(
+				name + ", id 1 with id 2: "
+					+ (reversed ? "positive, id 2 first" : "negative, id 1 first"),
+				chain, FIRST, SECOND, reversed ? 1 : -1),
+			new ChainComparison(
+				name + ", id 2 with id 1: "
+					+ (reversed ? "negative, id 2 first" : "positive, id 1 first"),
+				chain, SECOND, FIRST, reversed ? -1 : 1));
+	}
 
-		final BitSet bitSet = new BitSet();
-		bitSet.set(0);
-		bitSet.set(1);
-
-		final Comparator<Employee> idComparator = ComparatorFactory
+	/**
+	 * The cases of every factory method of {@link ChainableComparator}, with a comparator by the id
+	 * and one by the person: the bits 0 and 1 of the bit set reverse both
+	 *
+	 * @return the cases
+	 */
+	static Stream<ChainComparison> chainComparisons()
+	{
+		final Comparator<Employee> byId = ComparatorFactory
 			.newBeanPropertyComparator(Employee::getId);
-		final Comparator<Employee> personComparator = ComparatorFactory
+		final Comparator<Employee> byPerson = ComparatorFactory
 			.newBeanPropertyComparator(Employee::getPerson);
+		final List<Comparator<Employee>> byIdThenByPerson = List.of(byId, byPerson);
+		final BitSet bothReversed = new BitSet();
+		bothReversed.set(0);
+		bothReversed.set(1);
+		final ChainableComparator<Employee> added = ChainableComparator.of();
+		added.addComparator(byId);
+		added.addComparator(byPerson);
+		return Stream
+			.of(order("of(), then byId and byPerson added", added, false),
+				order("of(byId)", ChainableComparator.of(byId), false),
+				order("of([byId, byPerson])", ChainableComparator.of(byIdThenByPerson), false),
+				order("of([byId, byPerson], bits 0 and 1 set)",
+					ChainableComparator.of(byIdThenByPerson, bothReversed), true),
+				order("of(byId, true)", ChainableComparator.of(byId, true), true))
+			.flatMap(Function.identity());
+	}
 
-		final List<Comparator<Employee>> comparators = new ArrayList<>();
-		comparators.add(idComparator);
-		comparators.add(personComparator);
-
-		final Person person1 = Person.builder().name("Alex").married(Boolean.FALSE).build();
-		final Person person2 = Person.builder().name("John").married(Boolean.FALSE).build();
-
-		final Employee employee1 = Employee.builder().person(person1).id("1").build();
-		final Employee employee2 = Employee.builder().person(person2).id("2").build();
-
-		comparator = ChainableComparator.of();
-		comparator.addComparator(idComparator);
-		comparator.addComparator(personComparator);
-
-		actual = comparator.compare(employee1, employee1);
-		expected = actual == 0;
-		assertTrue(expected);
-
-		actual = comparator.compare(employee1, employee2);
-		expected = actual < 0;
-		assertTrue(expected);
-
-		actual = comparator.compare(employee2, employee1);
-		expected = actual > 0;
-		assertTrue(expected);
-
-		comparator = ChainableComparator.of(idComparator);
-
-		actual = comparator.compare(employee1, employee1);
-		expected = actual == 0;
-		assertTrue(expected);
-
-		actual = comparator.compare(employee1, employee2);
-		expected = actual < 0;
-		assertTrue(expected);
-
-		actual = comparator.compare(employee2, employee1);
-		expected = actual > 0;
-		assertTrue(expected);
-
-		comparator = ChainableComparator.of(comparators);
-
-		actual = comparator.compare(employee1, employee1);
-		expected = actual == 0;
-		assertTrue(expected);
-
-		actual = comparator.compare(employee1, employee2);
-		expected = actual < 0;
-		assertTrue(expected);
-
-		actual = comparator.compare(employee2, employee1);
-		expected = actual > 0;
-		assertTrue(expected);
-
-		comparator = ChainableComparator.of(comparators, bitSet);
-
-		actual = comparator.compare(employee1, employee1);
-		expected = actual == 0;
-		assertTrue(expected);
-
-		actual = comparator.compare(employee1, employee2);
-		expected = actual > 0;
-		assertTrue(expected);
-
-		actual = comparator.compare(employee2, employee1);
-		expected = actual < 0;
-		assertTrue(expected);
-
-		comparator = ChainableComparator.of(idComparator, true);
-
-		actual = comparator.compare(employee1, employee1);
-		expected = actual == 0;
-		assertTrue(expected);
-
-		actual = comparator.compare(employee1, employee2);
-		expected = actual > 0;
-		assertTrue(expected);
-
-		actual = comparator.compare(employee2, employee1);
-		expected = actual < 0;
-		assertTrue(expected);
+	/**
+	 * Test method for {@link ChainableComparator#compare(Object, Object)} with every factory method
+	 *
+	 * @param comparison
+	 *            the employees, the chain and the sign of the result
+	 */
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("chainComparisons")
+	public void testCompare(final ChainComparison comparison)
+	{
+		assertEquals(comparison.expectedSign(), Integer.signum(
+			comparison.chain().compare(comparison.object(), comparison.compareWithObject())));
 	}
 
 }
