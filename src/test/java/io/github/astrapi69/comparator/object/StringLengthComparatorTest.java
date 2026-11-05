@@ -25,7 +25,6 @@
 package io.github.astrapi69.comparator.object;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -33,7 +32,6 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -44,112 +42,6 @@ import io.github.astrapi69.comparator.SortOrder;
  */
 public class StringLengthComparatorTest
 {
-
-	/** For use of the result of the comparator. */
-	int actual;
-
-	/** The comparator. */
-	Comparator<String> comparator;
-
-	/** For use of the expected result. */
-	boolean expected;
-
-	/**
-	 * Test method for {@link StringLengthComparator#compare(String, String)}
-	 */
-	@Test
-	public void testCompare()
-	{
-		final String alex = "Alex";
-		final String billy = "Billy";
-		final String leo = "Leon";
-
-		comparator = StringLengthComparator.of();
-
-		// Leon length is equal with Alex length so the natural order will be taken
-		// so the alphabetic order is that Leon is smaller ...
-		actual = comparator.compare(alex, leo);
-		expected = actual < 0;
-		assertTrue(expected);
-		// Leon length is equal with Alex length so the natural order will be taken
-		// so the alphabetic order is that Alex is greater ...
-		actual = comparator.compare(leo, alex);
-		expected = 0 < actual;
-		assertTrue(expected);
-		// Billy is longer then Alex so it is greater...
-		actual = comparator.compare(alex, billy);
-		expected = 0 < actual;
-		assertTrue(expected);
-		// Now lets see a demo on a list...
-		final List<String> list = new ArrayList<>();
-		list.add(leo);
-		list.add(alex);
-		list.add(billy);
-
-		expected = list.indexOf(leo) == 0;
-		assertTrue(expected);
-		expected = list.indexOf(alex) == 1;
-		assertTrue(expected);
-		expected = list.indexOf(billy) == 2;
-		assertTrue(expected);
-
-		list.sort(comparator);
-
-		expected = list.indexOf(billy) == 0;
-		assertTrue(expected);
-		expected = list.indexOf(alex) == 1;
-		assertTrue(expected);
-		expected = list.indexOf(leo) == 2;
-		assertTrue(expected);
-
-	}
-
-	/**
-	 * Test method for {@link StringLengthComparator#compare(String, String)} created with different
-	 * factory methods.
-	 */
-	@Test
-	public void testCompareFactoryMethods()
-	{
-		final String alex = "Alex";
-		final String bill = "Billy";
-
-		comparator = StringLengthComparator.of(SortOrder.DESCENDING);
-
-		actual = comparator.compare(alex, alex);
-		expected = 0 == actual;
-		assertTrue(expected);
-
-		actual = comparator.compare(alex, bill);
-		expected = 0 < actual;
-		assertTrue(expected);
-
-		actual = comparator.compare(bill, alex);
-		expected = 0 > actual;
-		assertTrue(expected);
-		// null is greater...
-		actual = comparator.compare(null, bill);
-		expected = actual > 0;
-		assertTrue(expected);
-
-		comparator = StringLengthComparator.of(SortOrder.DESCENDING, false);
-
-		actual = comparator.compare(alex, alex);
-		expected = 0 == actual;
-		assertTrue(expected);
-
-		actual = comparator.compare(alex, bill);
-		expected = 0 < actual;
-		assertTrue(expected);
-
-		actual = comparator.compare(bill, alex);
-		expected = 0 > actual;
-		assertTrue(expected);
-		// null is smaller...
-		actual = comparator.compare(null, bill);
-		expected = actual < 0;
-		assertTrue(expected);
-	}
 
 	/**
 	 * Two strings, the comparator that compares them and the sign of the result
@@ -296,6 +188,59 @@ public class StringLengthComparatorTest
 	{
 		assertEquals(comparison.expectedSign(), Integer.signum(
 			comparison.comparator().compare(comparison.object(), comparison.compareWithObject())));
+	}
+
+	/**
+	 * A comparator and the order it sorts the strings {@code Leon, Alex, Billy} in
+	 *
+	 * @param description
+	 *            the name of the case
+	 * @param comparator
+	 *            the comparator
+	 * @param sortedStrings
+	 *            the strings sorted with the comparator
+	 */
+	record SortedStrings(String description, Comparator<String> comparator,
+		List<String> sortedStrings) {
+		@Override
+		public String toString()
+		{
+			return description;
+		}
+	}
+
+	/**
+	 * The orders of the factory methods in both sort orders: the longer string first, then the sort
+	 * order between the strings of equal length (#25)
+	 *
+	 * @return the comparators and the orders they sort in
+	 */
+	static Stream<SortedStrings> sortedStrings()
+	{
+		return Stream.of(
+			new SortedStrings("of(): Billy, Alex, Leon, the longer first, then the natural order",
+				StringLengthComparator.of(), List.of(BILLY, ALEX, LEON)),
+			new SortedStrings(
+				"of(DESCENDING): Billy, Leon, Alex, the longer first, then the natural order reversed",
+				StringLengthComparator.of(SortOrder.DESCENDING), List.of(BILLY, LEON, ALEX)));
+	}
+
+	/**
+	 * Test method for {@link StringLengthComparator#compare(String, String)} in a sort: the order
+	 * the comparator sorts the strings {@code Leon, Alex, Billy} in
+	 *
+	 * @param sorted
+	 *            the comparator and the order it sorts in
+	 */
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("sortedStrings")
+	public void testSort(final SortedStrings sorted)
+	{
+		final List<String> strings = new ArrayList<>(List.of(LEON, ALEX, BILLY));
+
+		strings.sort(sorted.comparator());
+
+		assertEquals(sorted.sortedStrings(), strings);
 	}
 
 }
