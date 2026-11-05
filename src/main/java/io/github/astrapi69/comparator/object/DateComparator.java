@@ -31,18 +31,40 @@ import io.github.astrapi69.comparator.ComparatorExtensions;
 import io.github.astrapi69.comparator.SortOrder;
 
 /**
- * The class DateComparator sorts Date object in ascending order as default or descending if the
- * {@link SortOrder} is set to {@link SortOrder#DESCENDING}.
+ * The class {@link DateComparator} sorts {@link Date} objects in ascending order as default, the
+ * earlier date and null first, or in descending order, the later date first and null last, if it is
+ * created with {@link SortOrder#DESCENDING} by {@link #DateComparator(SortOrder)}. It compares as
+ * {@link ComparatorExtensions#compare(Comparable, Comparable, SortOrder)} does, so
+ * {@code new DateComparator(SortOrder.DESCENDING)} sorts as {@link DescendingDateComparator}.
  */
 public class DateComparator implements Comparator<Date>
 {
 
+	/** The sort order. */
+	private final SortOrder sortOrder;
+
 	/**
 	 * Instantiates a new {@link DateComparator}, which sorts {@link Date} objects in ascending
-	 * order.
+	 * order, the earlier date and null first. Equivalent to
+	 * {@code new DateComparator(SortOrder.ASCENDING)}.
 	 */
 	public DateComparator()
 	{
+		this(SortOrder.ASCENDING);
+	}
+
+	/**
+	 * Instantiates a new {@link DateComparator}, which sorts {@link Date} objects in the given sort
+	 * order: {@link SortOrder#ASCENDING} puts the earlier date and null first,
+	 * {@link SortOrder#DESCENDING} the later date first and null last, as
+	 * {@link DescendingDateComparator} does.
+	 *
+	 * @param sortOrder
+	 *            the sort order
+	 */
+	public DateComparator(final SortOrder sortOrder)
+	{
+		this.sortOrder = sortOrder;
 	}
 
 	/**
@@ -51,7 +73,7 @@ public class DateComparator implements Comparator<Date>
 	@Override
 	public int compare(final Date date, final Date compareWithDate)
 	{
-		return ComparatorExtensions.compare(date, compareWithDate);
+		return ComparatorExtensions.compare(date, compareWithDate, sortOrder);
 	}
 
 }
