@@ -27,8 +27,12 @@ package io.github.astrapi69.comparator;
 import java.util.Comparator;
 
 /**
- * The abstract class {@link SortOrderComparator} can be extended for adding the sort order
- * ascending or descending. The default sort order is ascending.
+ * The class {@link SortOrderComparator} compares {@link Comparable} objects in the given sort
+ * order, ascending or descending, as
+ * {@link ComparatorExtensions#compare(Comparable, Comparable, SortOrder)} does. The default sort
+ * order is ascending. It can be used as it is, created by its constructors or its {@code of}
+ * factory methods, or extended, as {@link io.github.astrapi69.comparator.object.StringComparator}
+ * and {@link io.github.astrapi69.comparator.object.StringLengthComparator} do.
  *
  * @param <T>
  *            the generic type of the object to compare
@@ -74,7 +78,7 @@ public class SortOrderComparator<T extends Comparable<T>> implements Comparator<
 	}
 
 	/**
-	 * Factory method to create a new {@link SortOrderComparator} with the default sort order.
+	 * Factory method to create a new {@link SortOrderComparator} with the given sort order.
 	 *
 	 * @param <T>
 	 *            the generic type of the object to compare
