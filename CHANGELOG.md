@@ -27,6 +27,9 @@ CHANGED:
   endpoint this project published to is shut down; its settings are gone, among them the switch that
   held the checksums to md5 and sha1, and snapshots resolve from the Central Portal's snapshot
   repository (#12)
+- the module `requires transitive org.apache.commons.collections4`: `ChainableComparator` extends its
+  `ComparatorChain`, so a module that requires this one now reads collections4 as well and can name
+  `ComparatorChain`; 2 required it without `transitive` (#15)
 - the runtime dependency commons-collections4 4.5.0-M2, a milestone, is raised to the stable 4.6.0; the
   only type this library uses from it, `ComparatorChain`, the superclass of `ChainableComparator`, has
   the same public and protected API in both (#11)
