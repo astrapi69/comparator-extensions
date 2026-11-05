@@ -27,9 +27,9 @@ package io.github.astrapi69.comparator.factory;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -51,7 +51,6 @@ import org.meanbean.test.BeanTester;
 import com.google.common.collect.Lists;
 
 import io.github.astrapi69.test.object.Employee;
-import io.github.astrapi69.test.object.Person;
 
 /**
  * The unit test class for the class {@link ComparatorFactory}
@@ -94,84 +93,6 @@ public class ComparatorFactoryTest
 		// now the actual list have to be sorted as the values list
 		expected = values;
 		assertEquals(actual, expected);
-	}
-
-	/**
-	 * Test for method
-	 * {@link ComparatorFactory#newBeanPropertyComparator(Function, boolean, boolean)}
-	 */
-	@Test
-	public void testNewBeanPropertyComparator()
-	{
-		int actual;
-		boolean expected;
-		Comparator<Employee> employeeIdComparator;
-
-		final Person person1 = Person.builder().name("Alex").married(Boolean.FALSE).build();
-		final Person person2 = Person.builder().name("John").married(Boolean.FALSE).build();
-
-		final Employee employee1 = Employee.builder().person(person1).id("1").build();
-		final Employee employee2 = Employee.builder().person(person2).id("2").build();
-
-		employeeIdComparator = ComparatorFactory.newBeanPropertyComparator(Employee::getId, false,
-			false);
-
-		actual = employeeIdComparator.compare(employee1, employee1);
-		expected = actual == 0;
-		assertTrue(expected);
-
-		actual = employeeIdComparator.compare(employee1, employee2);
-		expected = actual == 1;
-		assertTrue(expected);
-
-		actual = employeeIdComparator.compare(employee2, employee1);
-		expected = actual == -1;
-		assertTrue(expected);
-
-		employeeIdComparator = ComparatorFactory.newBeanPropertyComparator(Employee::getId, false,
-			true);
-
-		actual = employeeIdComparator.compare(employee1, employee1);
-		expected = actual == 0;
-		assertTrue(expected);
-
-		actual = employeeIdComparator.compare(employee1, employee2);
-		expected = actual == -1;
-		assertTrue(expected);
-
-		actual = employeeIdComparator.compare(employee2, employee1);
-		expected = actual == 1;
-		assertTrue(expected);
-
-		employeeIdComparator = ComparatorFactory.newBeanPropertyComparator(Employee::getId, true,
-			true);
-
-		actual = employeeIdComparator.compare(employee1, employee1);
-		expected = actual == 0;
-		assertTrue(expected);
-
-		actual = employeeIdComparator.compare(employee1, employee2);
-		expected = actual == -1;
-		assertTrue(expected);
-
-		actual = employeeIdComparator.compare(employee2, employee1);
-		expected = actual == 1;
-		assertTrue(expected);
-
-		employeeIdComparator = ComparatorFactory.newBeanPropertyComparator(Employee::getId, true,
-			false);
-
-		actual = employeeIdComparator.compare(employee1, employee1);
-		expected = actual == 0;
-		assertTrue(expected);
-
-		actual = employeeIdComparator.compare(employee1, employee2);
-		expected = actual == 1;
-		assertTrue(expected);
-
-		actual = employeeIdComparator.compare(employee2, employee1);
-		expected = actual == -1;
-		assertTrue(expected);
 	}
 
 	/**
@@ -242,6 +163,24 @@ public class ComparatorFactoryTest
 		words.sort(order.comparator());
 
 		assertEquals(order.sortedWords(), words);
+	}
+
+	/**
+	 * Test for the methods {@link ComparatorFactory#newBeanPropertyComparator(Function)} and
+	 * {@link ComparatorFactory#newBeanPropertyComparator(Function, boolean, boolean)} with the
+	 * comparators of {@link #beanPropertyOrders()}: two elements with equal properties compare as
+	 * equal, whatever the flags, two equal words as well as two nulls
+	 *
+	 * @param order
+	 *            the comparator
+	 */
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("beanPropertyOrders")
+	public void testNewBeanPropertyComparatorEqualProperties(final BeanPropertyOrder order)
+	{
+		// another instance, equal to b, so that the comparison does not end at the same instance
+		assertEquals(0, order.comparator().compare("b", new String("b")), "two equal words");
+		assertEquals(0, order.comparator().compare(null, null), "two nulls");
 	}
 
 	/**
@@ -320,22 +259,6 @@ public class ComparatorFactoryTest
 		numberCounterMap = TestDataFactory.newCounterMap(new HashMap<>(), values);
 		integerComparator = ComparatorFactory.newMapValuesComparator(numberCounterMap);
 		assertNotNull(integerComparator);
-	}
-
-	/**
-	 * Test for method {@link ComparatorFactory#newRandomComparator(List)}
-	 */
-	@Test
-	public void testNewRandomComparator()
-	{
-		List<Integer> values;
-		// new scenario...
-		values = Lists.newArrayList(1, 2, 3, 4, 5);
-		// change list to random sort order
-		Collections.shuffle(values);
-		// create the random Comparator from the given list
-		Comparator<Integer> randomComparator = ComparatorFactory.newRandomComparator(values);
-		assertNotNull(randomComparator);
 	}
 
 	/**
@@ -461,12 +384,14 @@ public class ComparatorFactoryTest
 	 * @param randomOrder
 	 *            the factory method
 	 * @throws NoSuchAlgorithmException
-	 *             if no provider has SHA1PRNG, which the SUN provider of the JDK has
+	 *             if the SUN provider has no SHA1PRNG, which it has in the JDK
+	 * @throws NoSuchProviderException
+	 *             if the JDK has no SUN provider
 	 */
 	@ParameterizedTest(name = "{0}")
 	@MethodSource("randomOrders")
 	public void testRandomComparatorOrdersByTheGivenRandom(final RandomOrder randomOrder)
-		throws NoSuchAlgorithmException
+		throws NoSuchAlgorithmException, NoSuchProviderException
 	{
 		final List<Integer> order = sortedBy(randomOrder.newComparator().apply(seeded(1L)));
 
@@ -507,18 +432,23 @@ public class ComparatorFactoryTest
 	}
 
 	/**
-	 * A random that gives the same numbers on every run: SHA1PRNG of the SUN provider takes a seed
-	 * that is set before its first use as its only seed
+	 * A random that gives the same numbers on every run: SHA1PRNG, which the method asks the SUN
+	 * provider for, and not the first provider that has it, takes a seed that is set before its
+	 * first use as its only seed. The seed must not be 0: {@link SecureRandom#setSeed(long)}
+	 * ignores 0, and the random then seeds itself at its first use, with another seed on every run
 	 *
 	 * @param seed
-	 *            the seed
+	 *            the seed, not 0
 	 * @return the random
 	 * @throws NoSuchAlgorithmException
-	 *             if no provider has SHA1PRNG
+	 *             if the SUN provider has no SHA1PRNG
+	 * @throws NoSuchProviderException
+	 *             if the JDK has no SUN provider
 	 */
-	private static SecureRandom seeded(final long seed) throws NoSuchAlgorithmException
+	private static SecureRandom seeded(final long seed)
+		throws NoSuchAlgorithmException, NoSuchProviderException
 	{
-		final SecureRandom random = SecureRandom.getInstance("SHA1PRNG");
+		final SecureRandom random = SecureRandom.getInstance("SHA1PRNG", "SUN");
 		random.setSeed(seed);
 		return random;
 	}
