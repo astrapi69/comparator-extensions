@@ -109,7 +109,14 @@ public final class ComparatorExtensions
 	}
 
 	/**
-	 * Compares the given objects and returns the int value.
+	 * Compares the given objects in the given sort order and returns the int value.
+	 * <p>
+	 * Ascending is {@link #compare(Comparable, Comparable)}. Descending compares with the arguments
+	 * swapped, {@code compare(compareWithObject, object)}, as
+	 * {@link java.util.Collections#reverseOrder()} does, and does not negate the ascending result:
+	 * {@link Comparable#compareTo(Object)} may return {@link Integer#MIN_VALUE}, and
+	 * {@code -Integer.MIN_VALUE} is {@link Integer#MIN_VALUE}. The null check is swapped with the
+	 * arguments, so null comes first ascending and last descending.
 	 *
 	 * @param <T>
 	 *            the generic type
@@ -126,10 +133,9 @@ public final class ComparatorExtensions
 	{
 		if (SortOrder.DESCENDING.equals(sortOrder))
 		{
-			return compare(object, compareWithObject) * (-1);
+			return compare(compareWithObject, object);
 		}
 		return compare(object, compareWithObject);
-
 	}
 
 	/**
