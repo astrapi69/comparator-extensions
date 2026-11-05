@@ -114,11 +114,11 @@ public class ComparatorFactoryTest
 		assertTrue(expected);
 
 		actual = employeeIdComparator.compare(employee1, employee2);
-		expected = actual == -1;
+		expected = actual == 1;
 		assertTrue(expected);
 
 		actual = employeeIdComparator.compare(employee2, employee1);
-		expected = actual == 1;
+		expected = actual == -1;
 		assertTrue(expected);
 
 		employeeIdComparator = ComparatorFactory.newBeanPropertyComparator(Employee::getId, false,
@@ -129,11 +129,11 @@ public class ComparatorFactoryTest
 		assertTrue(expected);
 
 		actual = employeeIdComparator.compare(employee1, employee2);
-		expected = actual == 1;
+		expected = actual == -1;
 		assertTrue(expected);
 
 		actual = employeeIdComparator.compare(employee2, employee1);
-		expected = actual == -1;
+		expected = actual == 1;
 		assertTrue(expected);
 
 		employeeIdComparator = ComparatorFactory.newBeanPropertyComparator(Employee::getId, true,
@@ -144,11 +144,11 @@ public class ComparatorFactoryTest
 		assertTrue(expected);
 
 		actual = employeeIdComparator.compare(employee1, employee2);
-		expected = actual == 1;
+		expected = actual == -1;
 		assertTrue(expected);
 
 		actual = employeeIdComparator.compare(employee2, employee1);
-		expected = actual == -1;
+		expected = actual == 1;
 		assertTrue(expected);
 
 		employeeIdComparator = ComparatorFactory.newBeanPropertyComparator(Employee::getId, true,
@@ -159,11 +159,11 @@ public class ComparatorFactoryTest
 		assertTrue(expected);
 
 		actual = employeeIdComparator.compare(employee1, employee2);
-		expected = actual == -1;
+		expected = actual == 1;
 		assertTrue(expected);
 
 		actual = employeeIdComparator.compare(employee2, employee1);
-		expected = actual == 1;
+		expected = actual == -1;
 		assertTrue(expected);
 	}
 
@@ -189,10 +189,10 @@ public class ComparatorFactoryTest
 	}
 
 	/**
-	 * The overload with the function alone and the four combinations of the flags. What they do
-	 * today (#22): ascending true sorts descending and ascending false sorts ascending; the
-	 * overload with the function alone sorts ascending with the null last; nullsFirst places the
-	 * null whatever ascending is
+	 * The overload with the function alone and the four combinations of the flags: ascending true
+	 * sorts ascending and ascending false sorts descending, where they sorted the other way round
+	 * before (#22); the overload with the function alone sorts ascending with the null last, as it
+	 * did before; nullsFirst places the null whatever ascending is
 	 *
 	 * @return the comparators and the orders they sort in
 	 */
@@ -204,18 +204,18 @@ public class ComparatorFactoryTest
 		final List<String> descendingNullFirst = Arrays.asList(null, "c", "b", "a");
 		return Stream.of(new BeanPropertyOrder("function alone: ascending, the null last",
 			ComparatorFactory.newBeanPropertyComparator(Function.identity()), ascendingNullLast),
-			new BeanPropertyOrder("nulls last, ascending true: descending today (#22)",
+			new BeanPropertyOrder("nulls last, ascending true: ascending",
 				ComparatorFactory.newBeanPropertyComparator(Function.identity(), false, true),
-				descendingNullLast),
-			new BeanPropertyOrder("nulls last, ascending false: ascending today (#22)",
-				ComparatorFactory.newBeanPropertyComparator(Function.identity(), false, false),
 				ascendingNullLast),
-			new BeanPropertyOrder("nulls first, ascending true: descending today (#22)",
+			new BeanPropertyOrder("nulls last, ascending false: descending",
+				ComparatorFactory.newBeanPropertyComparator(Function.identity(), false, false),
+				descendingNullLast),
+			new BeanPropertyOrder("nulls first, ascending true: ascending",
 				ComparatorFactory.newBeanPropertyComparator(Function.identity(), true, true),
-				descendingNullFirst),
-			new BeanPropertyOrder("nulls first, ascending false: ascending today (#22)",
+				ascendingNullFirst),
+			new BeanPropertyOrder("nulls first, ascending false: descending",
 				ComparatorFactory.newBeanPropertyComparator(Function.identity(), true, false),
-				ascendingNullFirst));
+				descendingNullFirst));
 	}
 
 	/**
