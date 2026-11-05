@@ -28,6 +28,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Comparator;
+import java.util.Date;
+import java.util.function.IntSupplier;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
@@ -35,6 +38,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.meanbean.test.BeanTester;
 
+import io.github.astrapi69.comparator.object.DescendingDateComparator;
+import io.github.astrapi69.comparator.object.StringComparator;
 import io.github.astrapi69.test.object.Person;
 
 /**
@@ -142,6 +147,140 @@ public class ComparatorExtensionsTest
 		assertTrue(actual == 1);
 		actual = ComparatorExtensions.compare(person, otherPerson, SortOrder.ASCENDING);
 		assertTrue(actual == -1);
+	}
+
+	/**
+	 * A {@link Comparable} whose {@code compareTo} returns {@link Integer#MIN_VALUE} for a smaller
+	 * value, as {@link Comparable#compareTo(Object)} allows: it asks for a negative integer, and
+	 * {@link Integer#MIN_VALUE} is one
+	 *
+	 * @param value
+	 *            the value the ranks are ordered by
+	 */
+	record Rank(int value) implements Comparable<Rank> {
+		@Override
+		public int compareTo(final Rank other)
+		{
+			final int comparison = Integer.compare(value, other.value);
+			return comparison < 0 ? Integer.MIN_VALUE : comparison;
+		}
+	}
+
+	/**
+	 * A {@link Date} whose {@code compareTo} returns {@link Integer#MIN_VALUE} for an earlier date,
+	 * as {@link Rank} does: {@link Date#compareTo(Date)} is not final, so a subclass of
+	 * {@link Date} brings that value into {@link DescendingDateComparator}
+	 */
+	static final class RankedDate extends Date
+	{
+		private static final long serialVersionUID = 1L;
+
+		RankedDate(final long time)
+		{
+			super(time);
+		}
+
+		@Override
+		public int compareTo(final Date other)
+		{
+			final int comparison = super.compareTo(other);
+			return comparison < 0 ? Integer.MIN_VALUE : comparison;
+		}
+	}
+
+	/**
+	 * A comparison and the sign of its result
+	 *
+	 * @param description
+	 *            the name of the case
+	 * @param comparison
+	 *            the comparison
+	 * @param sign
+	 *            the sign of its result, -1, 0 or 1
+	 */
+	record SignedComparison(String description, IntSupplier comparison, int sign) {
+		@Override
+		public String toString()
+		{
+			return description;
+		}
+	}
+
+	/**
+	 * The comparisons of {@link ComparatorExtensions#compare(Comparable, Comparable, SortOrder)}
+	 * and of the comparators that go through it, with a {@code compareTo} that returns
+	 * {@link Integer#MIN_VALUE} for the smaller value, with null in both orders, and with strings,
+	 * whose {@code compareTo} never returns {@link Integer#MIN_VALUE}
+	 *
+	 * @return the comparisons
+	 */
+	static Stream<SignedComparison> sortOrderComparisons()
+	{
+		final Rank one = new Rank(1);
+		final Rank otherOne = new Rank(1);
+		final Rank two = new Rank(2);
+		final Rank none = null;
+		final Comparator<Rank> descending = SortOrderComparator.of(SortOrder.DESCENDING);
+		final Date earlier = new RankedDate(0);
+		final Date later = new RankedDate(1_000);
+		final Comparator<Date> descendingDates = new DescendingDateComparator();
+		final Comparator<String> descendingStrings = new StringComparator(SortOrder.DESCENDING);
+		return Stream.of(
+			new SignedComparison("ascending, 1 with 2: negative, 1 first",
+				() -> ComparatorExtensions.compare(one, two, SortOrder.ASCENDING), -1),
+			new SignedComparison("ascending, 2 with 1: positive, 1 first",
+				() -> ComparatorExtensions.compare(two, one, SortOrder.ASCENDING), 1),
+			new SignedComparison(
+				"descending, 1 with 2: negative, 1 stays first, as -MIN_VALUE is MIN_VALUE (#23)",
+				() -> ComparatorExtensions.compare(one, two, SortOrder.DESCENDING), -1),
+			new SignedComparison("descending, 2 with 1: negative, 2 first",
+				() -> ComparatorExtensions.compare(two, one, SortOrder.DESCENDING), -1),
+			new SignedComparison("descending, 1 with an equal 1: zero",
+				() -> ComparatorExtensions.compare(one, otherOne, SortOrder.DESCENDING), 0),
+			new SignedComparison("ascending, null with 1: negative, null first",
+				() -> ComparatorExtensions.compare(none, one, SortOrder.ASCENDING), -1),
+			new SignedComparison("ascending, 1 with null: positive, null first",
+				() -> ComparatorExtensions.compare(one, none, SortOrder.ASCENDING), 1),
+			new SignedComparison("ascending, null with null: zero",
+				() -> ComparatorExtensions.compare(none, none, SortOrder.ASCENDING), 0),
+			new SignedComparison("descending, null with 1: positive, null last",
+				() -> ComparatorExtensions.compare(none, one, SortOrder.DESCENDING), 1),
+			new SignedComparison("descending, 1 with null: negative, null last",
+				() -> ComparatorExtensions.compare(one, none, SortOrder.DESCENDING), -1),
+			new SignedComparison("descending, null with null: zero",
+				() -> ComparatorExtensions.compare(none, none, SortOrder.DESCENDING), 0),
+			new SignedComparison(
+				"SortOrderComparator descending, 1 with 2: negative, 1 stays first (#23)",
+				() -> descending.compare(one, two), -1),
+			new SignedComparison("SortOrderComparator descending, 2 with 1: negative, 2 first",
+				() -> descending.compare(two, one), -1),
+			new SignedComparison(
+				"DescendingDateComparator, earlier with later: negative, earlier stays first (#23)",
+				() -> descendingDates.compare(earlier, later), -1),
+			new SignedComparison(
+				"DescendingDateComparator, later with earlier: negative, later first",
+				() -> descendingDates.compare(later, earlier), -1),
+			new SignedComparison("StringComparator descending, a with b: positive, b first",
+				() -> descendingStrings.compare("a", "b"), 1),
+			new SignedComparison(
+				"StringComparator descending, ab with its prefix a: negative, ab first",
+				() -> descendingStrings.compare("ab", "a"), -1));
+	}
+
+	/**
+	 * Test for method {@link ComparatorExtensions#compare(Comparable, Comparable, SortOrder)} and
+	 * the comparators that go through it: {@link SortOrderComparator},
+	 * {@link DescendingDateComparator} and {@link StringComparator}. The sign of each comparison is
+	 * what the comparison answers for its order
+	 *
+	 * @param comparison
+	 *            the comparison and the sign of its result
+	 */
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("sortOrderComparisons")
+	public void testCompareSortOrderSign(final SignedComparison comparison)
+	{
+		assertEquals(comparison.sign(), Integer.signum(comparison.comparison().getAsInt()));
 	}
 
 	/**
