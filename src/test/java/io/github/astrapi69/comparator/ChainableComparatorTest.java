@@ -30,6 +30,7 @@ import java.util.BitSet;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.params.ParameterizedTest;
@@ -60,7 +61,10 @@ public class ChainableComparatorTest
 	 * @param description
 	 *            the name of the case
 	 * @param chain
-	 *            the chain
+	 *            makes the chain in the test, not in the method source: PIT counts what the method
+	 *            source runs as covered by the first invocation alone, and runs only that one
+	 *            against the mutants of a factory method, so a factory method that returned null
+	 *            for another row would go unnoticed
 	 * @param object
 	 *            the first employee
 	 * @param compareWithObject
@@ -68,8 +72,8 @@ public class ChainableComparatorTest
 	 * @param expectedSign
 	 *            the sign of the result: -1, 0 or 1
 	 */
-	record ChainComparison(String description, Comparator<Employee> chain, Employee object,
-		Employee compareWithObject, int expectedSign) {
+	record ChainComparison(String description, Supplier<Comparator<Employee>> chain,
+		Employee object, Employee compareWithObject, int expectedSign) {
 		@Override
 		public String toString()
 		{
@@ -85,13 +89,13 @@ public class ChainableComparatorTest
 	 * @param name
 	 *            the name of the chain
 	 * @param chain
-	 *            the chain
+	 *            makes the chain
 	 * @param reversed
 	 *            whether the chain reverses the comparator by id
 	 * @return the cases
 	 */
-	static Stream<ChainComparison> order(final String name, final Comparator<Employee> chain,
-		final boolean reversed)
+	static Stream<ChainComparison> order(final String name,
+		final Supplier<Comparator<Employee>> chain, final boolean reversed)
 	{
 		return Stream.of(
 			new ChainComparison(name + ", id 1 with itself: zero", chain, FIRST, FIRST, 0),
@@ -121,16 +125,18 @@ public class ChainableComparatorTest
 		final BitSet bothReversed = new BitSet();
 		bothReversed.set(0);
 		bothReversed.set(1);
-		final ChainableComparator<Employee> added = ChainableComparator.of();
-		added.addComparator(byId);
-		added.addComparator(byPerson);
-		return Stream
-			.of(order("of(), then byId and byPerson added", added, false),
-				order("of(byId)", ChainableComparator.of(byId), false),
-				order("of([byId, byPerson])", ChainableComparator.of(byIdThenByPerson), false),
-				order("of([byId, byPerson], bits 0 and 1 set)",
-					ChainableComparator.of(byIdThenByPerson, bothReversed), true),
-				order("of(byId, true)", ChainableComparator.of(byId, true), true))
+		final Supplier<Comparator<Employee>> added = () -> {
+			final ChainableComparator<Employee> chain = ChainableComparator.of();
+			chain.addComparator(byId);
+			chain.addComparator(byPerson);
+			return chain;
+		};
+		return Stream.of(order("of(), then byId and byPerson added", added, false),
+			order("of(byId)", () -> ChainableComparator.of(byId), false),
+			order("of([byId, byPerson])", () -> ChainableComparator.of(byIdThenByPerson), false),
+			order("of([byId, byPerson], bits 0 and 1 set)",
+				() -> ChainableComparator.of(byIdThenByPerson, bothReversed), true),
+			order("of(byId, true)", () -> ChainableComparator.of(byId, true), true))
 			.flatMap(Function.identity());
 	}
 
@@ -145,7 +151,7 @@ public class ChainableComparatorTest
 	public void testCompare(final ChainComparison comparison)
 	{
 		assertEquals(comparison.expectedSign(), Integer.signum(
-			comparison.chain().compare(comparison.object(), comparison.compareWithObject())));
+			comparison.chain().get().compare(comparison.object(), comparison.compareWithObject())));
 	}
 
 }
