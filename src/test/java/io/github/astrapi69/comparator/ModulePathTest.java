@@ -24,17 +24,20 @@
  */
 package io.github.astrapi69.comparator;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaCompiler;
@@ -42,64 +45,123 @@ import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
- * Test that the module of this library can be used on the module path by a consumer module that
- * requires this module alone (#15). {@link ChainableComparator} extends the commons-collections4
- * class {@code ComparatorChain}, so a consumer that names that class has to read the module
- * {@code org.apache.commons.collections4}; it does only when this module requires it
- * {@code transitive}. Otherwise javac reports that the package
- * {@code org.apache.commons.collections4.comparators} is not visible. Gradle's test task hands the
- * built jar and the runtime class path over in the system properties {@value #MODULE_JAR_PROPERTY}
- * and {@value #RUNTIME_CLASSPATH_PROPERTY} (gradle/testing.gradle)
+ * Test that a consumer that declares this library alone compiles against it: a module on the module
+ * path that requires this module alone (#15), and a class on the class path (#36).
+ * {@link ChainableComparator} extends the commons-collections4 class {@code ComparatorChain}, so
+ * the compiler of every consumer needs collections4: on the class path to see the superclass of
+ * {@code ChainableComparator}, on the module path to resolve the module
+ * {@code org.apache.commons.collections4} that this module requires {@code transitive}, which lets
+ * a consumer module name {@code ComparatorChain} as well; without {@code transitive} javac reports
+ * that the package {@code org.apache.commons.collections4.comparators} is not visible. Gradle's
+ * test task hands over what such a consumer compiles against in the system property
+ * {@value #CONSUMER_COMPILE_CLASSPATH_PROPERTY}: this project resolved as a consumer's compile
+ * class path resolves it, its apiElements, that is the built jar and the api dependencies
+ * (gradle/testing.gradle). Today commons-collections4 is an implementation dependency, so it is not
+ * on that path, and no consumer compiles (#36)
  */
 public class ModulePathTest
 {
 
 	/**
-	 * The system property with the path of the built jar
+	 * The system property with the compile class path of a consumer that declares this library
+	 * alone, separated by the platform's path separator
 	 */
-	private static final String MODULE_JAR_PROPERTY = "module.path.test.jar";
+	private static final String CONSUMER_COMPILE_CLASSPATH_PROPERTY = "module.path.test.consumer.compile.classpath";
 
 	/**
-	 * The system property with the runtime class path, separated by the platform's path separator
-	 */
-	private static final String RUNTIME_CLASSPATH_PROPERTY = "module.path.test.runtime.classpath";
-
-	/**
-	 * The module descriptor of the consumer, which requires this module and nothing else
+	 * The module descriptor of a consumer module, which requires this module and nothing else
 	 */
 	private static final String CONSUMER_MODULE_INFO = String.join("\n", "module consumer.check",
 		"{", "	requires io.github.astrapisixtynine.comparator.extensions;", "}", "");
 
 	/**
-	 * A class of the consumer that holds a {@link ChainableComparator} as the
-	 * {@code ComparatorChain} it is
+	 * The javac message of a consumer module whose module path does not hold collections4, the
+	 * module this module requires
 	 */
-	private static final String CONSUMER_CLASS = String.join("\n", "package consumer.check;", "",
-		"import java.util.Comparator;", "",
-		"import org.apache.commons.collections4.comparators.ComparatorChain;", "",
-		"import io.github.astrapi69.comparator.ChainableComparator;", "", "public class UseChain",
-		"{", "	public static ComparatorChain<String> chain()", "	{",
-		"		return ChainableComparator.of(Comparator.<String> naturalOrder());", "	}", "}",
-		"");
+	private static final String COLLECTIONS4_MODULE_NOT_FOUND = "module not found: org.apache.commons.collections4";
 
 	/**
-	 * Builds the module path from the built jar and the runtime class path. A missing property
+	 * A consumer: what it compiles, on which path, and how javac refuses it today
+	 *
+	 * @param description
+	 *            the description of the consumer, the name of the case
+	 * @param pathOption
+	 *            the javac option that names the path: {@code --module-path} or
+	 *            {@code --class-path}
+	 * @param sources
+	 *            the sources of the consumer, by their path relative to the source directory
+	 * @param errorToday
+	 *            a part of the message with which javac refuses the consumer today
+	 */
+	record Consumer(String description, String pathOption, Map<String, String> sources,
+		String errorToday) {
+		@Override
+		public String toString()
+		{
+			return description;
+		}
+	}
+
+	/**
+	 * The consumers: two modules on the module path, the one of #15 that names
+	 * {@code ComparatorChain} and one that uses no {@code ChainableComparator} at all, and the
+	 * README's Chains example on the class path (README.md, "Chains")
+	 *
+	 * @return the consumers
+	 */
+	static Stream<Consumer> consumers()
+	{
+		final String namesComparatorChain = String.join("\n", "package consumer.check;", "",
+			"import java.util.Comparator;", "",
+			"import org.apache.commons.collections4.comparators.ComparatorChain;", "",
+			"import io.github.astrapi69.comparator.ChainableComparator;", "",
+			"public class UseChain", "{", "	public static ComparatorChain<String> chain()", "	{",
+			"		return ChainableComparator.of(Comparator.<String> naturalOrder());", "	}", "}",
+			"");
+		final String usesNoChain = String.join("\n", "package consumer.check;", "",
+			"import io.github.astrapi69.comparator.ComparatorExtensions;", "",
+			"public class Compare", "{", "	public static int compare()", "	{",
+			"		return ComparatorExtensions.compare(\"a\", \"b\");", "	}", "}", "");
+		final String readmeChains = String.join("\n", "package consumer.check;", "",
+			"import java.util.ArrayList;", "import java.util.Comparator;", "import java.util.List;",
+			"", "import io.github.astrapi69.comparator.ChainableComparator;", "",
+			"public class Chains", "{", "	public static List<String> sorted()", "	{",
+			"		ChainableComparator<String> byLength = ChainableComparator",
+			"			.of(Comparator.comparingInt(String::length));",
+			"		byLength.addComparator(Comparator.naturalOrder());",
+			"		List<String> words = new ArrayList<>(List.of(\"bb\", \"c\", \"ab\", \"a\"));",
+			"		words.sort(byLength);", "		return words;", "	}", "}", "");
+		return Stream.of(
+			new Consumer("a module that names ComparatorChain", "--module-path",
+				Map.of("module-info.java", CONSUMER_MODULE_INFO, "consumer/check/UseChain.java",
+					namesComparatorChain),
+				COLLECTIONS4_MODULE_NOT_FOUND),
+			new Consumer("a module that uses no ChainableComparator", "--module-path",
+				Map.of("module-info.java", CONSUMER_MODULE_INFO, "consumer/check/Compare.java",
+					usesNoChain),
+				COLLECTIONS4_MODULE_NOT_FOUND),
+			new Consumer("the README's Chains example on the class path", "--class-path",
+				Map.of("consumer/check/Chains.java", readmeChains),
+				"class file for org.apache.commons.collections4.comparators.ComparatorChain not found"));
+	}
+
+	/**
+	 * The compile class path of a consumer that declares this library alone. A missing property
 	 * fails the test: a check that has nothing to compile against does not pass
 	 *
-	 * @return the module path
+	 * @return the compile class path
 	 */
-	private static String modulePath()
+	private static String consumerCompileClasspath()
 	{
-		final String moduleJar = System.getProperty(MODULE_JAR_PROPERTY);
-		final String runtimeClasspath = System.getProperty(RUNTIME_CLASSPATH_PROPERTY);
-		assertNotNull(moduleJar, "the system property " + MODULE_JAR_PROPERTY + " is not set");
-		assertNotNull(runtimeClasspath,
-			"the system property " + RUNTIME_CLASSPATH_PROPERTY + " is not set");
-		return moduleJar + File.pathSeparator + runtimeClasspath;
+		final String classpath = System.getProperty(CONSUMER_COMPILE_CLASSPATH_PROPERTY);
+		assertNotNull(classpath,
+			"the system property " + CONSUMER_COMPILE_CLASSPATH_PROPERTY + " is not set");
+		return classpath;
 	}
 
 	/**
@@ -120,22 +182,27 @@ public class ModulePathTest
 	}
 
 	/**
-	 * Test that a consumer module that requires only this module and names {@code ComparatorChain}
-	 * compiles on the module path
+	 * Test that a consumer that declares this library alone does not compile against it today, and
+	 * why: collections4 is not on its compile class path (#36)
 	 *
+	 * @param consumer
+	 *            the consumer
 	 * @param directory
 	 *            the directory for the sources and the classes of the consumer
 	 * @throws IOException
 	 *             if a source file cannot be written
 	 */
-	@Test
-	public void testConsumerModuleNamesComparatorChain(@TempDir final Path directory)
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("consumers")
+	public void testConsumerCompiles(final Consumer consumer, @TempDir final Path directory)
 		throws IOException
 	{
-		final Path moduleInfo = write(directory.resolve("src/module-info.java"),
-			CONSUMER_MODULE_INFO);
-		final Path consumerClass = write(directory.resolve("src/consumer/check/UseChain.java"),
-			CONSUMER_CLASS);
+		final List<Path> sources = new ArrayList<>();
+		for (final Map.Entry<String, String> source : consumer.sources().entrySet())
+		{
+			sources
+				.add(write(directory.resolve("src").resolve(source.getKey()), source.getValue()));
+		}
 		final JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 		assertNotNull(compiler, "no system Java compiler");
 		final DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
@@ -143,14 +210,15 @@ public class ModulePathTest
 			Locale.ENGLISH, StandardCharsets.UTF_8))
 		{
 			final Boolean compiled = compiler.getTask(null, fileManager, diagnostics,
-				List.of("--module-path", modulePath(), "-d",
+				List.of(consumer.pathOption(), consumerCompileClasspath(), "-d",
 					directory.resolve("classes").toString()),
-				null, fileManager.getJavaFileObjects(moduleInfo, consumerClass)).call();
-			assertTrue(compiled,
-				() -> "the consumer module does not compile on the module path: "
-					+ diagnostics.getDiagnostics().stream()
-						.map(diagnostic -> diagnostic.getMessage(Locale.ENGLISH))
-						.collect(Collectors.joining("; ")));
+				null, fileManager.getJavaFileObjects(sources.toArray(Path[]::new))).call();
+			final String messages = diagnostics.getDiagnostics().stream()
+				.map(diagnostic -> diagnostic.getMessage(Locale.ENGLISH))
+				.collect(Collectors.joining("; "));
+			assertFalse(compiled, () -> "the consumer compiles today: " + messages);
+			assertTrue(messages.contains(consumer.errorToday()),
+				() -> "javac refuses the consumer for another reason: " + messages);
 		}
 	}
 
