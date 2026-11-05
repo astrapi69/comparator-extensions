@@ -9,15 +9,25 @@ task sourcesJar(type: Jar) {
 task javadocJar(type: Jar) {
     from javadoc
     archiveClassifier.set("javadoc")
-    javadoc.properties.failOnError = true
 }
 
+// A javadoc warning fails the build (#32). It was found by a text search of the javadoc output, and
+// that search missed one: in a German locale javadoc prints "Warnung", not "warning", so a warning
+// went unnoticed in silly-collection 29.0, and the pull requests of #21 and #27 here reported none.
+// -Werror makes javadoc report any warning as an error, in every locale, and failOnError makes the
+// error fail the task. Before, failOnError was false: this block set it so, and the line
+// "javadoc.properties.failOnError = true" in javadocJar wrote into a copy of the task's properties,
+// which changed nothing. check depends on javadoc, so ./gradlew build and the CI build run it; build
+// did not run javadoc before.
 javadoc {
-    failOnError = false
+    failOnError = true
+    options.addBooleanOption("Werror", true)
     if(JavaVersion.current().isJava9Compatible()) {
         options.addBooleanOption("html5", true)
     }
 }
+
+check.dependsOn javadoc
 
 publishing {
     publications {
