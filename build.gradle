@@ -1,7 +1,7 @@
 buildscript {
     repositories {
         maven {
-            url projectRepositoriesMavenUrl
+            url = projectRepositoriesMavenUrl
         }
     }
 }
@@ -13,9 +13,9 @@ plugins {
     id 'maven-publish'
     id 'signing'
     alias(libs.plugins.gradle.versions.plugin)
-    alias(libs.plugins.grgit.gradle)
-    alias(libs.plugins.license.gradle.plugin)
+    alias(libs.plugins.nmcp.gradle.plugin)
     alias(libs.plugins.spotless.plugin.gradle)
+    alias(libs.plugins.test.results.complete)
     alias(libs.plugins.version.catalog.update)
 }
 
@@ -44,5 +44,3 @@ tasks.withType(JavaCompile).configureEach { javaCompiler ->
 tasks.named("test") {
     it.mustRunAfter(tasks.named("jar"))
 }
-
-apply from: "gradle/test-results-complete.gradle"

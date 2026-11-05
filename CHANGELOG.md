@@ -1,9 +1,39 @@
 ## Change log
 ----------------------
 
-Version 2.1-SNAPSHOT
+Version 3-SNAPSHOT
 -------------
 
+BREAKING:
+
+- Java 25 is the minimum, up from 17: the family builds, tests and releases on JDK 25
+  (astrapi69/mystic-crypt#234); the class files are major version 69 (#12)
+
+CHANGED:
+
+- built with Gradle 9.8.2, its wrapper jar checked against the published sha256; a `.gitattributes`
+  keeps the line endings of the wrapper scripts (#12)
+- the plugins spotless 7.0.0.BETA2 -> 8.10.4, versions 0.51.0 -> 0.67.0 under its new id
+  `io.github.ben-manes.versions`, and version-catalog-update 0.8.4 -> 1.1.2, which chooses versions
+  through a selector of its own: a stable version moves only to a stable one, and nothing to a
+  snapshot (#12)
+- the check that every test class left a result comes from the plugin
+  `io.github.astrapi69.test-results-complete` 1.0 instead of the copied
+  `gradle/test-results-complete.gradle` (#12)
+- releases go to Maven Central through the Central Portal, as in the rest of the family: the
+  `com.gradleup.nmcp` plugin uploads, the maintainer releases each deployment in the Portal, and a
+  `RELEASE-*` tag runs the new `publish.yml`, which signs with the signing subkey that the secret
+  `GPG_KEY_ID` names. An upload leaves only from CI, a release only from its tag. The OSSRH staging
+  endpoint this project published to is shut down; its settings are gone, among them the switch that
+  held the checksums to md5 and sha1, and snapshots resolve from the Central Portal's snapshot
+  repository (#12)
+- the runtime dependency commons-collections4 4.5.0-M2, a milestone, is raised to the stable 4.6.0; the
+  only type this library uses from it, `ComparatorChain`, the superclass of `ChainableComparator`, has
+  the same public and protected API in both (#11)
+- the grgit and hierynomus license plugins are removed: `tagRelease` runs `git tag` itself
+  (`gradle/tagging.gradle`), and Spotless enforces the MIT header from
+  `src/main/resources/license-header.txt`; the license plugin reported every Java file as missing its
+  header and passed (#12)
 
 Version 2
 -------------
