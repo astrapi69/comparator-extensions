@@ -112,12 +112,16 @@ public class ComparatorFactory
 
 	/**
 	 * Factory method for create a new {@link Comparator} from the given {@link List} with a random
-	 * order.
+	 * order. It shuffles a copy of the given list with a new {@link SecureRandom} and compares by
+	 * the index of an element in the copy, as {@link #newRandomComparator(List, SecureRandom)}
+	 * does: the given list stays as it is, it may be unmodifiable, and a later change of it does
+	 * not change the order of the comparator
 	 *
 	 * @param <T>
 	 *            the generic type of the elements
 	 * @param list
-	 *            the defined order
+	 *            the elements that the comparator orders in a random order; the method copies it
+	 *            and does not change it
 	 * @return the comparator
 	 */
 	public static <T> Comparator<T> newRandomComparator(final List<T> list)
@@ -128,12 +132,15 @@ public class ComparatorFactory
 
 	/**
 	 * Factory method for create a new {@link Comparator} from the given {@link List} with a random
-	 * order.
+	 * order. It shuffles a copy of the given list with the given {@link SecureRandom} and compares
+	 * by the index of an element in the copy: the given list stays as it is, it may be
+	 * unmodifiable, and a later change of it does not change the order of the comparator
 	 *
 	 * @param <T>
 	 *            the generic type of the elements
 	 * @param list
-	 *            the defined order
+	 *            the elements that the comparator orders in a random order; the method copies it
+	 *            and does not change it
 	 * @param secureRandom
 	 *            the secure random object for random generation
 	 * @return the comparator
@@ -142,8 +149,9 @@ public class ComparatorFactory
 		SecureRandom secureRandom)
 	{
 		Objects.requireNonNull(list);
-		Collections.shuffle(list, secureRandom);
-		return Comparator.comparing(list::indexOf);
+		final List<T> shuffled = new ArrayList<>(list);
+		Collections.shuffle(shuffled, secureRandom);
+		return Comparator.comparing(shuffled::indexOf);
 	}
 
 	/**
