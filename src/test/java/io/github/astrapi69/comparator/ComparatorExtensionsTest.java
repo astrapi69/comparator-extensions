@@ -231,8 +231,8 @@ public class ComparatorExtensionsTest
 			new SignedComparison("ascending, 2 with 1: positive, 1 first",
 				() -> ComparatorExtensions.compare(two, one, SortOrder.ASCENDING), 1),
 			new SignedComparison(
-				"descending, 1 with 2: negative, 1 stays first, as -MIN_VALUE is MIN_VALUE (#23)",
-				() -> ComparatorExtensions.compare(one, two, SortOrder.DESCENDING), -1),
+				"descending, 1 with 2: positive, 2 first, though compareTo returns MIN_VALUE (#23)",
+				() -> ComparatorExtensions.compare(one, two, SortOrder.DESCENDING), 1),
 			new SignedComparison("descending, 2 with 1: negative, 2 first",
 				() -> ComparatorExtensions.compare(two, one, SortOrder.DESCENDING), -1),
 			new SignedComparison("descending, 1 with an equal 1: zero",
@@ -250,13 +250,13 @@ public class ComparatorExtensionsTest
 			new SignedComparison("descending, null with null: zero",
 				() -> ComparatorExtensions.compare(none, none, SortOrder.DESCENDING), 0),
 			new SignedComparison(
-				"SortOrderComparator descending, 1 with 2: negative, 1 stays first (#23)",
-				() -> descending.compare(one, two), -1),
+				"SortOrderComparator descending, 1 with 2: positive, 2 first (#23)",
+				() -> descending.compare(one, two), 1),
 			new SignedComparison("SortOrderComparator descending, 2 with 1: negative, 2 first",
 				() -> descending.compare(two, one), -1),
 			new SignedComparison(
-				"DescendingDateComparator, earlier with later: negative, earlier stays first (#23)",
-				() -> descendingDates.compare(earlier, later), -1),
+				"DescendingDateComparator, earlier with later: positive, later first (#23)",
+				() -> descendingDates.compare(earlier, later), 1),
 			new SignedComparison(
 				"DescendingDateComparator, later with earlier: negative, later first",
 				() -> descendingDates.compare(later, earlier), -1),
