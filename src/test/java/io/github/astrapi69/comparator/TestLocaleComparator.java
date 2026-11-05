@@ -37,9 +37,10 @@ public class TestLocaleComparator implements Comparator<Locale>
 {
 
 	/**
-	 * Factory method to create a new {@link TestLocaleComparator} object.
+	 * Factory method to create a null-safe {@link Comparator} that decorates a new
+	 * {@link TestLocaleComparator} with a {@link NullCheckComparator}.
 	 *
-	 * @return the new {@link TestLocaleComparator} object
+	 * @return a new {@link NullCheckComparator} that decorates a new {@link TestLocaleComparator}
 	 */
 	public static Comparator<Locale> of()
 	{
@@ -47,11 +48,12 @@ public class TestLocaleComparator implements Comparator<Locale>
 	}
 
 	/**
-	 * Factory method to create a new {@link TestLocaleComparator} object.
+	 * Factory method to create a null-safe {@link Comparator} that decorates a new
+	 * {@link TestLocaleComparator} with a {@link NullCheckComparator}.
 	 *
 	 * @param nullIsGreaterThan
 	 *            the flag that specifies if null objects is greater than non null objects.
-	 * @return the new {@link TestLocaleComparator} object
+	 * @return a new {@link NullCheckComparator} that decorates a new {@link TestLocaleComparator}
 	 */
 	public static Comparator<Locale> of(final boolean nullIsGreaterThan)
 	{

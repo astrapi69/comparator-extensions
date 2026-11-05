@@ -25,11 +25,11 @@
 package io.github.astrapi69.comparator;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Comparator;
 import java.util.Date;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.function.IntSupplier;
 import java.util.stream.Stream;
 
@@ -119,35 +119,21 @@ public class ComparatorExtensionsTest
 	}
 
 	/**
-	 * Test for method {@link ComparatorExtensions#compare(Comparable, Comparable)}.
+	 * Test for method {@link ComparatorExtensions#compare(Comparable, Comparable)} with the pairs
+	 * of {@link #comparedPairs()}: the sign of the comparison is the answer of isGreater, isSmaller
+	 * and isSame, positive for the greater first, negative for the smaller first and zero for two
+	 * equal persons
+	 *
+	 * @param pair
+	 *            the pair and the answers
 	 */
-	@Test
-	public void testCompare()
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("comparedPairs")
+	public void testCompare(final ComparedPair pair)
 	{
-		int actual;
-
-		final Person person = Person.builder().name("al").build();
-		final Person otherPerson = Person.builder().name("bert").build();
-		actual = ComparatorExtensions.compare(person, otherPerson);
-		assertTrue(actual == -1);
-		actual = ComparatorExtensions.compare(otherPerson, person);
-		assertTrue(actual == 1);
-	}
-
-	/**
-	 * Test for method {@link ComparatorExtensions#compare(Comparable, Comparable, SortOrder)}.
-	 */
-	@Test
-	public void testCompareSortOrder()
-	{
-		int actual;
-
-		final Person person = Person.builder().name("al").build();
-		final Person otherPerson = Person.builder().name("bert").build();
-		actual = ComparatorExtensions.compare(person, otherPerson, SortOrder.DESCENDING);
-		assertTrue(actual == 1);
-		actual = ComparatorExtensions.compare(person, otherPerson, SortOrder.ASCENDING);
-		assertTrue(actual == -1);
+		final int sign = pair.greater() ? 1 : pair.smaller() ? -1 : 0;
+		assertEquals(sign,
+			Integer.signum(ComparatorExtensions.compare(pair.object(), pair.compareWithObject())));
 	}
 
 	/**
@@ -292,98 +278,155 @@ public class ComparatorExtensionsTest
 	}
 
 	/**
-	 * Test for method {@link ComparatorExtensions#equalNullCheck(Object, Object)}.
+	 * Two persons and the answer of {@link ComparatorExtensions#equalNullCheck(Object, Object)} for
+	 * them
+	 *
+	 * @param description
+	 *            the name of the case
+	 * @param object
+	 *            the first person
+	 * @param compareWithObject
+	 *            the person to compare with
+	 * @param result
+	 *            the answer: true or false, or null if the equals method has to decide
 	 */
-	@Test
-	public void testEqualNullCheck()
-	{
-		Boolean expected;
-		Boolean actual;
-
-		final Person person = Person.builder().name("al").build();
-		final Person otherPerson = Person.builder().name("bert").build();
-
-		expected = null;
-		actual = ComparatorExtensions.equalNullCheck(person, otherPerson);
-
-		assertNull(actual);
-		assertEquals(actual, expected);
-
-		expected = true;
-		actual = ComparatorExtensions.equalNullCheck(person, person);
-		assertEquals(actual, expected);
-
-		expected = false;
-		actual = ComparatorExtensions.equalNullCheck(person, null);
-		assertEquals(actual, expected);
-
-		expected = false;
-		actual = ComparatorExtensions.equalNullCheck(null, person);
-		assertEquals(actual, expected);
-
+	record EqualNullCheck(String description, Person object, Person compareWithObject,
+		Boolean result) {
+		@Override
+		public String toString()
+		{
+			return description;
+		}
 	}
 
 	/**
-	 * Test for method {@link ComparatorExtensions#nullCheck(Object, Object)}.
+	 * The cases of {@link ComparatorExtensions#equalNullCheck(Object, Object)}: the same instance,
+	 * null included, is equal, one null is not, and two persons, equal or not, are left to the
+	 * equals method
+	 *
+	 * @return the cases
 	 */
-	@Test
-	public void testNullCheck()
+	static Stream<EqualNullCheck> equalNullChecks()
 	{
-		Integer actual;
-		Person person;
-		Person otherPerson;
-
-		person = Person.builder().build();
-		actual = ComparatorExtensions.nullCheck(person, null);
-		assertTrue(actual == 1);
-		actual = ComparatorExtensions.nullCheck(Person.builder().build(), null);
-		assertTrue(actual == 1);
-		otherPerson = Person.builder().name("s").build();
-		actual = ComparatorExtensions.nullCheck(person, otherPerson);
-		assertTrue(actual == null);
-		person = null;
-		actual = ComparatorExtensions.nullCheck(person, null);
-		assertTrue(actual == 0);
-		actual = ComparatorExtensions.nullCheck(person, otherPerson);
-		assertTrue(actual == -1);
+		final Person al = Person.builder().name("al").build();
+		final Person otherAl = Person.builder().name("al").build();
+		final Person bert = Person.builder().name("bert").build();
+		return Stream.of(new EqualNullCheck("the same instance: true", al, al, true),
+			new EqualNullCheck("both null: true", null, null, true),
+			new EqualNullCheck("the first null: false", null, al, false),
+			new EqualNullCheck("the second null: false", al, null, false),
+			new EqualNullCheck("two persons: null, left to equals", al, bert, null),
+			new EqualNullCheck("equal, two instances: null, left to equals", al, otherAl, null));
 	}
 
 	/**
-	 * Test for method {@link ComparatorExtensions#nullCheck(Object, Object, boolean)}.
+	 * Test for method {@link ComparatorExtensions#equalNullCheck(Object, Object)}
+	 *
+	 * @param check
+	 *            the persons and the answer
 	 */
-	@Test
-	public void testNullCheckWithNullFlag()
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("equalNullChecks")
+	public void testEqualNullCheck(final EqualNullCheck check)
 	{
-		Integer actual;
-		Person person;
-		Person otherPerson;
-		// false case...
-		person = Person.builder().build();
-		actual = ComparatorExtensions.nullCheck(person, null, false);
-		assertTrue(actual == 1);
-		actual = ComparatorExtensions.nullCheck(Person.builder().build(), null, false);
-		assertTrue(actual == 1);
-		otherPerson = Person.builder().name("s").build();
-		actual = ComparatorExtensions.nullCheck(person, otherPerson, false);
-		assertTrue(actual == null);
-		person = null;
-		actual = ComparatorExtensions.nullCheck(person, null, false);
-		assertTrue(actual == 0);
-		actual = ComparatorExtensions.nullCheck(person, otherPerson, false);
-		assertTrue(actual == -1);
-		// true case...
-		actual = ComparatorExtensions.nullCheck(Person.builder().build(), null, true);
-		assertTrue(actual == -1);
-		person = Person.builder().build();
-		actual = ComparatorExtensions.nullCheck(person, null, true);
-		assertTrue(actual == -1);
-		actual = ComparatorExtensions.nullCheck(person, otherPerson, true);
-		assertTrue(actual == null);
-		person = null;
-		actual = ComparatorExtensions.nullCheck(person, null, true);
-		assertTrue(actual == 0);
-		actual = ComparatorExtensions.nullCheck(person, otherPerson, true);
-		assertTrue(actual == 1);
+		assertEquals(check.result(),
+			ComparatorExtensions.equalNullCheck(check.object(), check.compareWithObject()));
+	}
+
+	/**
+	 * A null check of two persons and its result
+	 *
+	 * @param description
+	 *            the name of the case
+	 * @param nullCheck
+	 *            the null check, one of the methods {@code nullCheck}
+	 * @param object
+	 *            the first person
+	 * @param compareWithObject
+	 *            the person to compare with
+	 * @param result
+	 *            the result: -1, 0 or 1, or null if the compare method has to decide
+	 */
+	record NullCheck(String description, BiFunction<Person, Person, Integer> nullCheck,
+		Person object, Person compareWithObject, Integer result) {
+		@Override
+		public String toString()
+		{
+			return description;
+		}
+	}
+
+	/**
+	 * The cases of a null check: null is the smaller person, or the greater one with
+	 * nullIsGreaterThan; the same instance, null included, is 0, and two persons, equal or not, are
+	 * left to the compare method
+	 *
+	 * @param name
+	 *            the name of the null check
+	 * @param nullCheck
+	 *            the null check
+	 * @param nullIsGreaterThan
+	 *            the flag the null check is made with
+	 * @return the cases
+	 */
+	static Stream<NullCheck> nullChecksOf(final String name,
+		final BiFunction<Person, Person, Integer> nullCheck, final boolean nullIsGreaterThan)
+	{
+		final Person al = Person.builder().name("al").build();
+		final Person otherAl = Person.builder().name("al").build();
+		final Person bert = Person.builder().name("bert").build();
+		return Stream.of(
+			new NullCheck(
+				name + ", a person with null: "
+					+ (nullIsGreaterThan ? "-1, null last" : "1, null first"),
+				nullCheck, al, null, nullIsGreaterThan ? -1 : 1),
+			new NullCheck(
+				name + ", null with a person: "
+					+ (nullIsGreaterThan ? "1, null last" : "-1, null first"),
+				nullCheck, null, al, nullIsGreaterThan ? 1 : -1),
+			new NullCheck(name + ", null with null: 0", nullCheck, null, null, 0),
+			new NullCheck(name + ", the same instance: 0", nullCheck, al, al, 0),
+			new NullCheck(name + ", two persons: null, left to compare", nullCheck, al, bert, null),
+			new NullCheck(name + ", equal, two instances: null, left to compare", nullCheck, al,
+				otherAl, null));
+	}
+
+	/**
+	 * The cases of {@link ComparatorExtensions#nullCheck(Object, Object)}, which places null as
+	 * {@link ComparatorExtensions#nullCheck(Object, Object, boolean)} with false does, and of the
+	 * latter with false and with true
+	 *
+	 * @return the cases
+	 */
+	static Stream<NullCheck> nullChecks()
+	{
+		return Stream.of(
+			nullChecksOf("nullCheck(object, compareWithObject)", ComparatorExtensions::nullCheck,
+				false),
+			nullChecksOf("nullCheck(object, compareWithObject, false)",
+				(object, compareWithObject) -> ComparatorExtensions.nullCheck(object,
+					compareWithObject, false),
+				false),
+			nullChecksOf("nullCheck(object, compareWithObject, true)",
+				(object, compareWithObject) -> ComparatorExtensions.nullCheck(object,
+					compareWithObject, true),
+				true))
+			.flatMap(Function.identity());
+	}
+
+	/**
+	 * Test for the methods {@link ComparatorExtensions#nullCheck(Object, Object)} and
+	 * {@link ComparatorExtensions#nullCheck(Object, Object, boolean)}
+	 *
+	 * @param check
+	 *            the null check, the persons and the result
+	 */
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("nullChecks")
+	public void testNullCheck(final NullCheck check)
+	{
+		assertEquals(check.result(),
+			check.nullCheck().apply(check.object(), check.compareWithObject()));
 	}
 
 	/**

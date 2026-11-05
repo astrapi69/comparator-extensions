@@ -24,13 +24,17 @@
  */
 package io.github.astrapi69.comparator.object;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import io.github.astrapi69.comparator.SortOrder;
 
@@ -40,193 +44,204 @@ import io.github.astrapi69.comparator.SortOrder;
 public class StringComparatorTest
 {
 
-	/** For use of the result of the comparator. */
-	private int actual;
+	/** A string, before {@link #BILLY} and {@link #LEON} in the natural order. */
+	static final String ALEX = "Alex";
 
-	/** The comparator. */
-	private Comparator<String> comparator;
+	/** A string, after {@link #ALEX} and before {@link #LEON} in the natural order. */
+	static final String BILLY = "Billy";
 
-	/** For use of the expected result. */
-	private boolean expected;
-
-
-	/**
-	 * Test method for {@link StringComparator#compare(String, String)} with null smaller.
-	 */
-	@Test
-	public void testCompare()
-	{
-		String alex = "Alex";
-		String bill = "Billy";
-		String leo = "Leon";
-
-		comparator = StringComparator.of(false);
-
-		actual = comparator.compare(alex, alex);
-		expected = 0 == actual;
-		assertTrue(expected);
-
-		actual = comparator.compare(alex, leo);
-		expected = 0 > actual;
-		assertTrue(expected);
-
-		actual = comparator.compare(leo, alex);
-		expected = 0 < actual;
-		assertTrue(expected);
-
-		actual = comparator.compare(alex, bill);
-		expected = actual < 0;
-		assertTrue(expected);
-		// null is smaller...
-		actual = comparator.compare(null, bill);
-		expected = actual < 0;
-		assertTrue(expected);
-
-		// Now lets see a demo on a list...
-		List<String> list = new ArrayList<>();
-		list.add(leo);
-		list.add(alex);
-		list.add(bill);
-		list.add(null);
-		list.add(null);
-
-		expected = list.indexOf(leo) == 0;
-		assertTrue(expected);
-		expected = list.indexOf(alex) == 1;
-		assertTrue(expected);
-		expected = list.indexOf(bill) == 2;
-		assertTrue(expected);
-
-		list.sort(comparator);
-
-		expected = list.indexOf(alex) == 2;
-		assertTrue(expected);
-		expected = list.indexOf(bill) == 3;
-		assertTrue(expected);
-		expected = list.indexOf(leo) == 4;
-		assertTrue(expected);
-
-	}
-
+	/** A string, after {@link #ALEX} and {@link #BILLY} in the natural order. */
+	static final String LEON = "Leon";
 
 	/**
-	 * Test method for {@link StringComparator#compare(String, String)} created with different
-	 * factory methods.
+	 * Two strings, the comparator that compares them and the sign of the result
+	 *
+	 * @param description
+	 *            the name of the case
+	 * @param comparator
+	 *            the comparator
+	 * @param object
+	 *            the first string
+	 * @param compareWithObject
+	 *            the string to compare with
+	 * @param expectedSign
+	 *            the sign of the result: -1, 0 or 1
 	 */
-	@Test
-	public void testCompareFactoryMethods()
-	{
-		String alex = "Alex";
-		String bill = "Billy";
-		String leo = "Leon";
-
-		comparator = StringComparator.of();
-
-		actual = comparator.compare(alex, alex);
-		expected = 0 == actual;
-		assertTrue(expected);
-
-		actual = comparator.compare(alex, leo);
-		expected = 0 > actual;
-		assertTrue(expected);
-
-		actual = comparator.compare(leo, alex);
-		expected = 0 < actual;
-		assertTrue(expected);
-		// null is greater...
-		actual = comparator.compare(null, bill);
-		expected = actual > 0;
-		assertTrue(expected);
-
-		comparator = StringComparator.of(SortOrder.DESCENDING);
-
-		actual = comparator.compare(alex, alex);
-		expected = 0 == actual;
-		assertTrue(expected);
-
-		actual = comparator.compare(alex, leo);
-		expected = 0 < actual;
-		assertTrue(expected);
-
-		actual = comparator.compare(leo, alex);
-		expected = 0 > actual;
-		assertTrue(expected);
-		// null is greater...
-		actual = comparator.compare(null, bill);
-		expected = actual > 0;
-		assertTrue(expected);
-
-		comparator = StringComparator.of(SortOrder.DESCENDING, false);
-
-		actual = comparator.compare(alex, alex);
-		expected = 0 == actual;
-		assertTrue(expected);
-
-		actual = comparator.compare(alex, leo);
-		expected = 0 < actual;
-		assertTrue(expected);
-
-		actual = comparator.compare(leo, alex);
-		expected = 0 > actual;
-		assertTrue(expected);
-		// null is smaller...
-		actual = comparator.compare(null, bill);
-		expected = actual < 0;
-		assertTrue(expected);
+	record StringComparison(String description, Comparator<String> comparator, String object,
+		String compareWithObject, int expectedSign) {
+		@Override
+		public String toString()
+		{
+			return description;
+		}
 	}
 
 	/**
-	 * Test method for {@link StringComparator#compare(String, String)} with null greater.
+	 * The cases of the order of a comparator in the given sort order: the natural order of the
+	 * strings ascending, its reverse descending
+	 *
+	 * @param name
+	 *            the name of the comparator
+	 * @param comparator
+	 *            the comparator
+	 * @param sortOrder
+	 *            the sort order the comparator was created with
+	 * @return the cases
 	 */
-	@Test
-	public void testCompareNullGreater()
+	static Stream<StringComparison> order(final String name, final Comparator<String> comparator,
+		final SortOrder sortOrder)
 	{
-		String alex = "Alex";
-		String bill = "Billy";
-		String leo = "Leon";
+		final boolean ascending = sortOrder == SortOrder.ASCENDING;
+		// another instance, equal to ALEX, so that the comparison does not end at the same instance
+		final String otherAlex = new String(ALEX);
+		return Stream.of(
+			new StringComparison(
+				name + ", Alex with Leon: "
+					+ (ascending ? "negative, Alex first" : "positive, Leon first"),
+				comparator, ALEX, LEON, ascending ? -1 : 1),
+			new StringComparison(
+				name + ", Leon with Alex: "
+					+ (ascending ? "positive, Alex first" : "negative, Leon first"),
+				comparator, LEON, ALEX, ascending ? 1 : -1),
+			new StringComparison(
+				name + ", Alex with Billy: "
+					+ (ascending ? "negative, Alex first" : "positive, Billy first"),
+				comparator, ALEX, BILLY, ascending ? -1 : 1),
+			new StringComparison(name + ", Alex with an equal Alex: zero", comparator, ALEX,
+				otherAlex, 0));
+	}
 
-		comparator = StringComparator.of(true);
+	/**
+	 * The cases of null with a comparator of a factory method, which the flag nullIsGreaterThan
+	 * places and not the sort order
+	 *
+	 * @param name
+	 *            the name of the comparator
+	 * @param comparator
+	 *            the comparator
+	 * @param nullIsGreaterThan
+	 *            the flag the comparator was created with
+	 * @return the cases
+	 */
+	static Stream<StringComparison> nulls(final String name, final Comparator<String> comparator,
+		final boolean nullIsGreaterThan)
+	{
+		return Stream.of(
+			new StringComparison(
+				name + ", null with Billy: "
+					+ (nullIsGreaterThan ? "positive, null last" : "negative, null first"),
+				comparator, null, BILLY, nullIsGreaterThan ? 1 : -1),
+			new StringComparison(
+				name + ", Billy with null: "
+					+ (nullIsGreaterThan ? "negative, null last" : "positive, null first"),
+				comparator, BILLY, null, nullIsGreaterThan ? -1 : 1),
+			new StringComparison(name + ", null with null: zero", comparator, null, null, 0));
+	}
 
-		actual = comparator.compare(alex, leo);
-		expected = actual < 0;
-		assertTrue(expected);
+	/**
+	 * The cases of every constructor and factory method of {@link StringComparator}: the natural
+	 * order ascending, its reverse descending, and with a factory method null where the flag
+	 * nullIsGreaterThan puts it, last if it is not given
+	 *
+	 * @return the cases
+	 */
+	static Stream<StringComparison> stringComparisons()
+	{
+		return Stream.of(
+			order("new StringComparator()", new StringComparator(), SortOrder.ASCENDING),
+			order("new StringComparator(ASCENDING)", new StringComparator(SortOrder.ASCENDING),
+				SortOrder.ASCENDING),
+			order("new StringComparator(DESCENDING)", new StringComparator(SortOrder.DESCENDING),
+				SortOrder.DESCENDING),
+			order("of()", StringComparator.of(), SortOrder.ASCENDING),
+			nulls("of()", StringComparator.of(), true),
+			order("of(false)", StringComparator.of(false), SortOrder.ASCENDING),
+			nulls("of(false)", StringComparator.of(false), false),
+			order("of(true)", StringComparator.of(true), SortOrder.ASCENDING),
+			nulls("of(true)", StringComparator.of(true), true),
+			order("of(ASCENDING)", StringComparator.of(SortOrder.ASCENDING), SortOrder.ASCENDING),
+			nulls("of(ASCENDING)", StringComparator.of(SortOrder.ASCENDING), true),
+			order("of(DESCENDING)", StringComparator.of(SortOrder.DESCENDING),
+				SortOrder.DESCENDING),
+			nulls("of(DESCENDING)", StringComparator.of(SortOrder.DESCENDING), true),
+			order("of(DESCENDING, false)", StringComparator.of(SortOrder.DESCENDING, false),
+				SortOrder.DESCENDING),
+			nulls("of(DESCENDING, false)", StringComparator.of(SortOrder.DESCENDING, false), false))
+			.flatMap(Function.identity());
+	}
 
-		actual = comparator.compare(leo, alex);
-		expected = 0 < actual;
-		assertTrue(expected);
+	/**
+	 * Test method for {@link StringComparator#compare(String, String)} with every constructor and
+	 * factory method: the natural order ascending, its reverse descending, and null where the flag
+	 * nullIsGreaterThan puts it
+	 *
+	 * @param comparison
+	 *            the strings, the comparator and the sign of the result
+	 */
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("stringComparisons")
+	public void testCompareOrder(final StringComparison comparison)
+	{
+		assertEquals(comparison.expectedSign(), Integer.signum(
+			comparison.comparator().compare(comparison.object(), comparison.compareWithObject())));
+	}
 
-		actual = comparator.compare(alex, bill);
-		expected = actual < 0;
-		assertTrue(expected);
-		// null is greater...
-		actual = comparator.compare(null, bill);
-		expected = actual > 0;
-		assertTrue(expected);
+	/**
+	 * A comparator and the order it sorts the strings {@code Leon, Alex, Billy, null, null} in
+	 *
+	 * @param description
+	 *            the name of the case
+	 * @param comparator
+	 *            the comparator
+	 * @param sortedStrings
+	 *            the strings sorted with the comparator
+	 */
+	record SortedStrings(String description, Comparator<String> comparator,
+		List<String> sortedStrings) {
+		@Override
+		public String toString()
+		{
+			return description;
+		}
+	}
 
-		// Now lets see a demo on a list...
-		List<String> list = new ArrayList<>();
-		list.add(leo);
-		list.add(alex);
-		list.add(bill);
-		list.add(null);
-		list.add(null);
+	/**
+	 * The orders of the factory methods with both flags and in both sort orders: the flag places
+	 * the nulls, the sort order the strings
+	 *
+	 * @return the comparators and the orders they sort in
+	 */
+	static Stream<SortedStrings> sortedStrings()
+	{
+		return Stream.of(
+			new SortedStrings("of(false): the nulls first, then Alex, Billy, Leon",
+				StringComparator.of(false), Arrays.asList(null, null, ALEX, BILLY, LEON)),
+			new SortedStrings("of(true): Alex, Billy, Leon, then the nulls",
+				StringComparator.of(true), Arrays.asList(ALEX, BILLY, LEON, null, null)),
+			new SortedStrings("of(DESCENDING, false): the nulls first, then Leon, Billy, Alex",
+				StringComparator.of(SortOrder.DESCENDING, false),
+				Arrays.asList(null, null, LEON, BILLY, ALEX)),
+			new SortedStrings("of(DESCENDING): Leon, Billy, Alex, then the nulls",
+				StringComparator.of(SortOrder.DESCENDING),
+				Arrays.asList(LEON, BILLY, ALEX, null, null)));
+	}
 
-		expected = list.indexOf(leo) == 0;
-		assertTrue(expected);
-		expected = list.indexOf(alex) == 1;
-		assertTrue(expected);
-		expected = list.indexOf(bill) == 2;
-		assertTrue(expected);
+	/**
+	 * Test method for {@link StringComparator#compare(String, String)} in a sort: the order the
+	 * comparator sorts the strings {@code Leon, Alex, Billy, null, null} in
+	 *
+	 * @param sorted
+	 *            the comparator and the order it sorts in
+	 */
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("sortedStrings")
+	public void testSort(final SortedStrings sorted)
+	{
+		final List<String> strings = new ArrayList<>(Arrays.asList(LEON, ALEX, BILLY, null, null));
 
-		list.sort(comparator);
+		strings.sort(sorted.comparator());
 
-		expected = list.indexOf(alex) == 0;
-		assertTrue(expected);
-		expected = list.indexOf(bill) == 1;
-		assertTrue(expected);
-		expected = list.indexOf(leo) == 2;
-		assertTrue(expected);
-
+		assertEquals(sorted.sortedStrings(), strings);
 	}
 
 }

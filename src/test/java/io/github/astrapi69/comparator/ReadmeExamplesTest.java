@@ -47,7 +47,10 @@ import io.github.astrapi69.comparator.object.StringComparator;
 
 /**
  * The examples of the README's Quick start, each block as a test, with the values its comments name
- * as assertions. A change here belongs into the README too, and the other way round.
+ * as assertions. A change here belongs into the README too, and the other way round. One
+ * {@code @Test} per block and not a parameterized test, as the other test classes have for the
+ * cases of one behaviour (#26): each test mirrors a block of the README, whose statements test
+ * different methods.
  */
 class ReadmeExamplesTest
 {
