@@ -25,11 +25,12 @@
 package io.github.astrapi69.comparator.object;
 
 import java.util.Comparator;
+import java.util.stream.Stream;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * The unit test class for the class {@link HashCodeComparator}.
@@ -39,9 +40,6 @@ import org.junit.jupiter.api.Test;
  */
 public class HashCodeComparatorTest
 {
-
-	/** For use of the result of the comparator. */
-	int actual;
 
 	/** The comparator. */
 	Comparator<String> comparator;
@@ -56,29 +54,69 @@ public class HashCodeComparatorTest
 	}
 
 	/**
-	 * Tear down method will be invoked after every unit test method
+	 * Two strings and the sign of their comparison
+	 *
+	 * @param description
+	 *            the name of the case
+	 * @param object
+	 *            the first string
+	 * @param compareWithObject
+	 *            the string to compare with
+	 * @param expectedSign
+	 *            the sign of the result: -1, 0 or 1
 	 */
-	@AfterEach
-	public void tearDown()
-	{
-		comparator = null;
+	record ComparedStrings(String description, String object, String compareWithObject,
+		int expectedSign) {
+		@Override
+		public String toString()
+		{
+			return description;
+		}
 	}
 
 	/**
-	 * Test method for {@link HashCodeComparator#compare(Object, Object)} .
+	 * The cases with null, which comes before every object, and with hash codes that
+	 * {@link String#hashCode()} defines: a string of one character has that character as its hash
+	 * code, 97 for a and 98 for b, Aa and BB share 2112, and polygenelubricants has
+	 * {@link Integer#MIN_VALUE}, whose difference to the hash code of a does not fit into an int
+	 *
+	 * @return the cases
 	 */
-	@Test
-	public void testCompare()
+	static Stream<ComparedStrings> comparedStrings()
 	{
-		final String testString = "Albert";
-		final String notExpected = "Asterios";
-		final String expected = "Albert";
+		final String a = "a";
+		// another instance, equal to a and with its hash code
+		final String otherA = new String(a);
+		// "polygenelubricants".hashCode() is Integer.MIN_VALUE, -2147483648: a compare that
+		// subtracts the hash codes overflows with it and returns the wrong sign in both orders,
+		// MIN_VALUE - 97 is 2147483551 and 97 - MIN_VALUE is -2147483551
+		final String minimalHashCode = "polygenelubricants";
+		return Stream.of(new ComparedStrings("both null", null, null, 0),
+			new ComparedStrings("the first null", null, a, -1),
+			new ComparedStrings("the second null", a, null, 1),
+			new ComparedStrings("the same instance", a, a, 0),
+			new ComparedStrings("equal, two instances", a, otherA, 0),
+			new ComparedStrings("the smaller hash code first", a, "b", -1),
+			new ComparedStrings("the greater hash code first", "b", a, 1),
+			new ComparedStrings("not equal, the same hash code", "Aa", "BB", 0),
+			new ComparedStrings("the hash code Integer.MIN_VALUE first", minimalHashCode, a, -1),
+			new ComparedStrings("the hash code Integer.MIN_VALUE second", a, minimalHashCode, 1));
+	}
 
-		Assertions.assertTrue(comparator.compare(testString, notExpected) == 1);
-
-		Assertions.assertTrue(comparator.compare(notExpected, testString) == -1);
-
-		Assertions.assertTrue(comparator.compare(testString, expected) == 0);
+	/**
+	 * Test method for {@link HashCodeComparator#compare(Object, Object)}: null before every object,
+	 * otherwise the order of the hash codes, which does not tell two objects with the same hash
+	 * code apart
+	 *
+	 * @param strings
+	 *            the strings and the sign of their comparison
+	 */
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("comparedStrings")
+	public void testCompare(final ComparedStrings strings)
+	{
+		Assertions.assertEquals(strings.expectedSign(),
+			Integer.signum(comparator.compare(strings.object(), strings.compareWithObject())));
 	}
 
 }

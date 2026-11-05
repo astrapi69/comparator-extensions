@@ -31,9 +31,16 @@ import io.github.astrapi69.comparator.SortOrder;
 import io.github.astrapi69.comparator.SortOrderComparator;
 
 /**
- * The class {@link StringLengthComparator} compares {@link String} objects based on length. The
- * default order is greater length come first. If length are equal then the natural ordering will be
- * taken.
+ * The class {@link StringLengthComparator} compares {@link String} objects by their length: the
+ * longer string comes first, in either sort order. The sort order decides between strings of equal
+ * length only: {@link SortOrder#ASCENDING}, the default, puts them in their natural order, and
+ * {@link SortOrder#DESCENDING} in the reverse of it. So {@link SortOrder#DESCENDING} still puts the
+ * longer string first and reverses only the order of strings of equal length:
+ * {@code "Leon", "Alex", "Billy"} sorts to {@code "Billy", "Alex", "Leon"} with
+ * {@link SortOrder#ASCENDING} and to {@code "Billy", "Leon", "Alex"} with
+ * {@link SortOrder#DESCENDING}. This differs from {@code Comparator.comparingInt(String::length)},
+ * which puts the shorter string first, and its {@code reversed()}, which puts the longer one first:
+ * there the order decides the order of the lengths, here the sort order does not.
  *
  * @author Asterios Raptis
  */
@@ -41,17 +48,22 @@ public class StringLengthComparator extends SortOrderComparator<String>
 {
 
 	/**
-	 * Instantiates a new {@link StringLengthComparator} object
+	 * Instantiates a new {@link StringLengthComparator} with the default sort order
+	 * {@link SortOrder#ASCENDING}: the longer string comes first, and strings of equal length come
+	 * in their natural order.
 	 */
 	public StringLengthComparator()
 	{
 	}
 
 	/**
-	 * Instantiates a new {@link StringLengthComparator}.
+	 * Instantiates a new {@link StringLengthComparator} with the given sort order, which decides
+	 * between strings of equal length only: the longer string comes first in either sort order, and
+	 * strings of equal length come in their natural order with {@link SortOrder#ASCENDING} and in
+	 * the reverse of it with {@link SortOrder#DESCENDING}.
 	 *
 	 * @param sortOrder
-	 *            the sort order
+	 *            the sort order of strings of equal length
 	 */
 	public StringLengthComparator(final SortOrder sortOrder)
 	{
@@ -59,9 +71,12 @@ public class StringLengthComparator extends SortOrderComparator<String>
 	}
 
 	/**
-	 * Factory method to create a new {@link StringLengthComparator} object.
+	 * Factory method to create a null-safe {@link Comparator} that decorates a new
+	 * {@link StringLengthComparator} of the default sort order {@link SortOrder#ASCENDING} with a
+	 * {@link NullCheckComparator} in which null is greater than a non-null string: the longer
+	 * string comes first, strings of equal length come in their natural order, and null comes last.
 	 *
-	 * @return the new {@link StringLengthComparator} object
+	 * @return a new {@link NullCheckComparator} that decorates a new {@link StringLengthComparator}
 	 */
 	public static Comparator<String> of()
 	{
@@ -69,11 +84,14 @@ public class StringLengthComparator extends SortOrderComparator<String>
 	}
 
 	/**
-	 * Factory method to create a new {@link StringLengthComparator} object.
+	 * Factory method to create a null-safe {@link Comparator} that decorates a new
+	 * {@link StringLengthComparator} of the default sort order {@link SortOrder#ASCENDING} with a
+	 * {@link NullCheckComparator}: the longer string comes first, strings of equal length come in
+	 * their natural order, and null comes last or first as the given flag says.
 	 *
 	 * @param nullIsGreaterThan
-	 *            the flag that specifies if null objects is greater than non null objects.
-	 * @return the new {@link StringLengthComparator} object
+	 *            the flag that specifies if null is greater than a non-null string
+	 * @return a new {@link NullCheckComparator} that decorates a new {@link StringLengthComparator}
 	 */
 	public static Comparator<String> of(final boolean nullIsGreaterThan)
 	{
@@ -81,11 +99,16 @@ public class StringLengthComparator extends SortOrderComparator<String>
 	}
 
 	/**
-	 * Factory method to create a new {@link StringLengthComparator} object.
+	 * Factory method to create a null-safe {@link Comparator} that decorates a new
+	 * {@link StringLengthComparator} of the given sort order, which decides between strings of
+	 * equal length only, with a {@link NullCheckComparator} in which null is greater than a
+	 * non-null string: the longer string comes first in either sort order, strings of equal length
+	 * come in their natural order with {@link SortOrder#ASCENDING} and in the reverse of it with
+	 * {@link SortOrder#DESCENDING}, and null comes last in either sort order.
 	 *
 	 * @param sortOrder
-	 *            the sort order
-	 * @return the new {@link StringLengthComparator} object
+	 *            the sort order of strings of equal length
+	 * @return a new {@link NullCheckComparator} that decorates a new {@link StringLengthComparator}
 	 */
 	public static Comparator<String> of(final SortOrder sortOrder)
 	{
@@ -93,13 +116,18 @@ public class StringLengthComparator extends SortOrderComparator<String>
 	}
 
 	/**
-	 * Factory method to create a new {@link StringLengthComparator} object.
+	 * Factory method to create a null-safe {@link Comparator} that decorates a new
+	 * {@link StringLengthComparator} of the given sort order, which decides between strings of
+	 * equal length only, with a {@link NullCheckComparator}: the longer string comes first in
+	 * either sort order, strings of equal length come in their natural order with
+	 * {@link SortOrder#ASCENDING} and in the reverse of it with {@link SortOrder#DESCENDING}, and
+	 * null comes last or first as the given flag says, in either sort order.
 	 *
-	 * @param nullIsGreaterThan
-	 *            the flag that specifies if null objects is greater than non null objects
 	 * @param sortOrder
-	 *            the sort order
-	 * @return the new {@link StringLengthComparator} object
+	 *            the sort order of strings of equal length
+	 * @param nullIsGreaterThan
+	 *            the flag that specifies if null is greater than a non-null string
+	 * @return a new {@link NullCheckComparator} that decorates a new {@link StringLengthComparator}
 	 */
 	public static Comparator<String> of(final SortOrder sortOrder, final boolean nullIsGreaterThan)
 	{

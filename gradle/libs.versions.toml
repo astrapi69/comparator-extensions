@@ -1,6 +1,7 @@
 [versions]
 commons-collections4-version = "4.6.0"
 gradle-plugin-nmcp-version = "1.6.2"
+gradle-plugin-pitest-version = "1.19.0"
 gradle-plugin-spotless-version = "8.11.0"
 gradle-plugin-test-results-complete-version = "1.0"
 gradle-plugin-version-catalog-update-version = "1.1.2"
@@ -9,6 +10,8 @@ guava-version = "33.8.0-jre"
 junit-jupiter-version = "6.1.3"
 junit-platform-launcher-version = "6.1.3"
 meanbean-version = "2.0.3"
+pitest-junit5-plugin-version = "1.2.3"
+pitest-version = "1.30.1"
 test-object-version = "9.1"
 throwable-version = "3"
 vintage-time-version = "6"
@@ -33,6 +36,7 @@ unit-testing = [
 [plugins]
 gradle-versions-plugin = { id = "io.github.ben-manes.versions", version.ref = "gradle-plugin-versions-version" }
 nmcp-gradle-plugin = { id = "com.gradleup.nmcp", version.ref = "gradle-plugin-nmcp-version" }
+pitest-gradle-plugin = { id = "info.solidsoft.pitest", version.ref = "gradle-plugin-pitest-version" }
 spotless-plugin-gradle = { id = "com.diffplug.spotless", version.ref = "gradle-plugin-spotless-version" }
 test-results-complete = { id = "io.github.astrapi69.test-results-complete", version.ref = "gradle-plugin-test-results-complete-version" }
 version-catalog-update = { id = "nl.littlerobots.version-catalog-update", version.ref = "gradle-plugin-version-catalog-update-version" }

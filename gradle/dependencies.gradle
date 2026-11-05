@@ -1,5 +1,8 @@
 dependencies {
-    implementation libs.commons.collections4
+    // api, not implementation: ChainableComparator extends its ComparatorChain, and the module requires it
+    // transitive, so a consumer's compiler needs it; the pom gives it the compile scope, the module metadata
+    // lists it in apiElements (#36)
+    api libs.commons.collections4
 
     testImplementation libs.vintage.time
     testImplementation libs.guava
