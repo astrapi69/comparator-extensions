@@ -20,7 +20,7 @@
  */
 module io.github.astrapisixtynine.comparator.extensions
 {
-	requires org.apache.commons.collections4;
+	requires transitive org.apache.commons.collections4;
 
 	exports io.github.astrapi69.comparator;
 	exports io.github.astrapi69.comparator.factory;
