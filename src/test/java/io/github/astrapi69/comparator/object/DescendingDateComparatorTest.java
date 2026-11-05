@@ -29,7 +29,6 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -51,16 +50,7 @@ public class DescendingDateComparatorTest
 	@BeforeEach
 	public void setUp()
 	{
-		comparator = new DateComparator();
-	}
-
-	/**
-	 * Tear down method will be invoked after every unit test method
-	 */
-	@AfterEach
-	public void tearDown()
-	{
-		comparator = null;
+		comparator = new DescendingDateComparator();
 	}
 
 	/**
@@ -88,7 +78,6 @@ public class DescendingDateComparatorTest
 		Assertions.assertTrue(dates.get(3).equals(after));
 		Assertions.assertTrue(dates.get(4) == null);
 		// Sort collection with our DescendingDateComparator...
-		comparator = new DescendingDateComparator();
 		dates.sort(comparator);
 		Assertions.assertTrue(dates.get(0).equals(future));
 		Assertions.assertTrue(dates.get(1).equals(after));
