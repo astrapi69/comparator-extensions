@@ -299,21 +299,27 @@ public class DateComparatorTest extends BaseComparatorTestCase<Date>
 	}
 
 	/**
-	 * The cases of the comparators of dates: {@link DateComparator} sorts in ascending order, and
-	 * the descending order is the class {@link DescendingDateComparator} (#35)
+	 * The cases of every constructor of {@link DateComparator} and of
+	 * {@link DescendingDateComparator}: {@code new DateComparator()} stays ascending, and
+	 * {@code new DateComparator(SortOrder.DESCENDING)}, which the class Javadoc promised, sorts as
+	 * {@link DescendingDateComparator} (#35)
 	 *
 	 * @return the cases
 	 */
 	static Stream<DateComparison> dateComparisons()
 	{
 		return Stream.of(order("new DateComparator()", new DateComparator(), SortOrder.ASCENDING),
+			order("new DateComparator(ASCENDING)", new DateComparator(SortOrder.ASCENDING),
+				SortOrder.ASCENDING),
+			order("new DateComparator(DESCENDING)", new DateComparator(SortOrder.DESCENDING),
+				SortOrder.DESCENDING),
 			order("new DescendingDateComparator()", new DescendingDateComparator(),
 				SortOrder.DESCENDING))
 			.flatMap(Function.identity());
 	}
 
 	/**
-	 * Test method for {@link DateComparator#compare(Date, Date)} and
+	 * Test method for {@link DateComparator#compare(Date, Date)} with every constructor and for
 	 * {@link DescendingDateComparator#compare(Date, Date)}: the earlier date and null first in
 	 * ascending order, the later date first and null last in descending order
 	 *
@@ -326,19 +332,6 @@ public class DateComparatorTest extends BaseComparatorTestCase<Date>
 	{
 		Assertions.assertEquals(comparison.expectedSign(), Integer.signum(
 			comparison.comparator().compare(comparison.date(), comparison.compareWithDate())));
-	}
-
-	/**
-	 * Pins #35 as it is: the class Javadoc promises a sort order that can be set to
-	 * {@link SortOrder#DESCENDING}, but {@link DateComparator} has the no-argument constructor
-	 * only, and no constructor takes a {@link SortOrder}
-	 */
-	@Test
-	public void testNoConstructorTakesASortOrder()
-	{
-		Assertions.assertDoesNotThrow(() -> DateComparator.class.getConstructor());
-		Assertions.assertThrows(NoSuchMethodException.class,
-			() -> DateComparator.class.getConstructor(SortOrder.class));
 	}
 
 }
