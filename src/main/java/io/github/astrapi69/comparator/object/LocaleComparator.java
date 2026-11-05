@@ -39,6 +39,14 @@ public class LocaleComparator implements Comparator<Locale>
 {
 
 	/**
+	 * Instantiates a new {@link LocaleComparator}, which does not check for null; the factory
+	 * methods {@link #of()} and {@link #of(boolean)} decorate it with a null check.
+	 */
+	public LocaleComparator()
+	{
+	}
+
+	/**
 	 * Factory method to create a new {@link LocaleComparator} object.
 	 *
 	 * @return the new {@link LocaleComparator} object
