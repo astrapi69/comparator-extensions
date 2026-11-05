@@ -16,6 +16,17 @@ CHANGED:
   examples run in `ReadmeExamplesTest`, the packages, the quality, how to verify the release
   signatures, how a release is made and how to contribute. It names 2 as the last release for
   Java 17, and 3 as the first release signed by the signing subkey
+- mutation testing and a coverage floor (#21): the tests kill all 83 mutants of PIT 1.30.1 with its
+  default mutators, 100%, up from 76 of 83, 91.6%, and the CI build fails below 98% (`mutationThreshold`
+  in `build.gradle`; PIT rounds the score half up to a whole percent before it compares), so from 3
+  survivors on. The 7 that survived are killed by parameterized tests of what no test checked:
+  `isGreater` and `isSmaller` of two equal objects, `newBeanPropertyComparator` with a null property, the
+  order of `newRandomComparator(list, random)` and `newRandomMapValuesComparator` under a seeded
+  `SecureRandom`, and `HashCodeComparator` with null. The build fails below 98% of the lines or of the
+  branches as well (`jacocoTestCoverageVerification` in `gradle/testing.gradle`); the tests cover all 135
+  lines and 38 branches. CI publishes the mutation score of each push to `develop` or `main` as a
+  shields.io endpoint badge on the `gh-pages` branch (`badges/mutation-score-develop.json`,
+  `badges/mutation-score-main.json`), also when the score fails the floor
 
 Version 3
 -------------

@@ -36,4 +36,29 @@ jacocoTestReport {
     }
 }
 
+// Coverage floor the build fails below (#21). Measured on 2026-11-05: 135 of 135 lines and 38 of 38
+// branches, 100 % each. The floor is each measure minus about two points, rounded down, as for the
+// mutation score in build.gradle: a few lines that a new method's tests do not reach yet do not fail
+// the build at once, a drop of more than about two points does. With the 135 lines of today it fails
+// from 3 missed lines on; with the 38 branches from the first missed branch, as one branch is 2.6
+// points (37 of 38 is 97.4 %).
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                counter = 'LINE'
+                value = 'COVEREDRATIO'
+                minimum = 0.98
+            }
+            limit {
+                counter = 'BRANCH'
+                value = 'COVEREDRATIO'
+                minimum = 0.98
+            }
+        }
+    }
+}
+
+jacocoTestCoverageVerification.dependsOn test
 check.dependsOn jacocoTestReport
+check.dependsOn jacocoTestCoverageVerification
