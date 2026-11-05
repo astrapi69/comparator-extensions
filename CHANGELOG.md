@@ -4,6 +4,14 @@
 Version 3.1-SNAPSHOT
 -------------
 
+CHANGED:
+
+- the README as silly-collection's (#27): what the library is for and when the JDK, Apache Commons
+  Collections or Guava are enough, the requirements, the installation, a quick start whose
+  examples run in `ReadmeExamplesTest`, the packages, the quality, how to verify the release
+  signatures, how a release is made and how to contribute. It names 2 as the last release for
+  Java 17, and 3 as the first release signed by the signing subkey
+
 Version 3
 -------------
 
