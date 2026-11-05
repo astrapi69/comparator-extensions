@@ -27,7 +27,6 @@ package io.github.astrapi69.comparator.factory;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.security.NoSuchAlgorithmException;
@@ -375,45 +374,47 @@ public class ComparatorFactoryTest
 	/**
 	 * Test for the methods {@link ComparatorFactory#newRandomComparator(List)} and
 	 * {@link ComparatorFactory#newRandomComparator(List, SecureRandom)} with a list of the numbers
-	 * {@link #ONE_TO_FIFTY} in their order. What they do today (#24): they shuffle the given list
-	 * itself, and the comparator orders by the given list as it is at each comparison, so it
-	 * follows a later change of it
+	 * {@link #ONE_TO_FIFTY} in their order: they shuffle a copy (#24), so the given list stays as
+	 * it was and a later change of it does not change the order of the comparator, which is a
+	 * shuffled order, not the order given
 	 *
 	 * @param factory
 	 *            the factory method
 	 */
 	@ParameterizedTest(name = "{0}")
 	@MethodSource("randomComparatorsOfAList")
-	public void testNewRandomComparatorShufflesTheGivenList(final RandomComparatorOfAList factory)
+	public void testNewRandomComparatorLeavesTheGivenList(final RandomComparatorOfAList factory)
 	{
 		final List<Integer> givenList = new ArrayList<>(ONE_TO_FIFTY);
 
 		final Comparator<Integer> comparator = factory.newComparator().apply(givenList);
 
-		assertNotEquals(ONE_TO_FIFTY, givenList, "the given list comes back shuffled today (#24)");
-		assertEquals(givenList, sortedBy(comparator, ONE_TO_FIFTY),
-			"the comparator orders as the given list is now");
+		assertEquals(ONE_TO_FIFTY, givenList, "the given list stays as it was");
+		final List<Integer> order = sortedBy(comparator, ONE_TO_FIFTY);
+		assertNotEquals(ONE_TO_FIFTY, order, "a shuffled order, not the order given");
 		Collections.reverse(givenList);
-		assertEquals(givenList, sortedBy(comparator, ONE_TO_FIFTY),
-			"the comparator follows a later change of the given list today (#24)");
+		assertEquals(order, sortedBy(comparator, ONE_TO_FIFTY),
+			"a later change of the given list does not change the order");
 	}
 
 	/**
 	 * Test for the methods {@link ComparatorFactory#newRandomComparator(List)} and
 	 * {@link ComparatorFactory#newRandomComparator(List, SecureRandom)} with an unmodifiable list
-	 * of the numbers {@link #ONE_TO_FIFTY}. What they do today (#24): they throw, as they cannot
-	 * shuffle the given list itself
+	 * of the numbers {@link #ONE_TO_FIFTY} in their order: they take it, as they shuffle a copy
+	 * (#24), and the comparator orders the numbers in a shuffled order, not the order given
 	 *
 	 * @param factory
 	 *            the factory method
 	 */
 	@ParameterizedTest(name = "{0}")
 	@MethodSource("randomComparatorsOfAList")
-	public void testNewRandomComparatorWithAnUnmodifiableList(final RandomComparatorOfAList factory)
+	public void testNewRandomComparatorTakesAnUnmodifiableList(
+		final RandomComparatorOfAList factory)
 	{
-		assertThrows(UnsupportedOperationException.class,
-			() -> factory.newComparator().apply(ONE_TO_FIFTY),
-			"an unmodifiable list cannot be shuffled today (#24)");
+		final Comparator<Integer> comparator = factory.newComparator().apply(ONE_TO_FIFTY);
+
+		assertNotEquals(ONE_TO_FIFTY, sortedBy(comparator, ONE_TO_FIFTY),
+			"a shuffled order, not the order given");
 	}
 
 	/**
