@@ -25,11 +25,14 @@
 package io.github.astrapi69.comparator;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.stream.Stream;
+
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.meanbean.test.BeanTester;
 
 import io.github.astrapi69.test.object.Person;
@@ -41,60 +44,72 @@ public class ComparatorExtensionsTest
 {
 
 	/**
-	 * Test for method {@link ComparatorExtensions#isSmaller(Comparable, Comparable)}
+	 * A pair of persons, which compare by their names, and what
+	 * {@link ComparatorExtensions#isGreater(Comparable, Comparable)},
+	 * {@link ComparatorExtensions#isSmaller(Comparable, Comparable)} and
+	 * {@link ComparatorExtensions#isSame(Comparable, Comparable)} answer for it
+	 *
+	 * @param description
+	 *            the name of the case
+	 * @param object
+	 *            the first person
+	 * @param compareWithObject
+	 *            the person to compare with
+	 * @param greater
+	 *            the answer of isGreater
+	 * @param smaller
+	 *            the answer of isSmaller
+	 * @param same
+	 *            the answer of isSame
 	 */
-	@Test
-	public void testIsSmaller()
-	{
-		boolean actual;
-		Person person;
-		Person otherPerson;
-
-		person = Person.builder().name("al").build();
-		otherPerson = Person.builder().name("bert").build();
-
-		actual = ComparatorExtensions.isSmaller(person, otherPerson);
-		assertTrue(actual);
-
-		actual = ComparatorExtensions.isSmaller(otherPerson, person);
-		assertFalse(actual);
+	record ComparedPair(String description, Person object, Person compareWithObject,
+		boolean greater, boolean smaller, boolean same) {
+		@Override
+		public String toString()
+		{
+			return description;
+		}
 	}
 
 	/**
-	 * Test for method {@link ComparatorExtensions#isGreater(Comparable, Comparable)}
+	 * The pairs on both sides of the boundary of two equal persons, and with null, which
+	 * {@link ComparatorExtensions#compare(Comparable, Comparable)} orders before every object
+	 *
+	 * @return the pairs
 	 */
-	@Test
-	public void testIsGreater()
+	static Stream<ComparedPair> comparedPairs()
 	{
-		boolean actual;
-		Person person;
-		Person otherPerson;
-
-		person = Person.builder().name("al").build();
-		otherPerson = Person.builder().name("bert").build();
-
-		actual = ComparatorExtensions.isGreater(person, otherPerson);
-		assertFalse(actual);
-
-		actual = ComparatorExtensions.isGreater(otherPerson, person);
-		assertTrue(actual);
+		final Person al = Person.builder().name("al").build();
+		final Person otherAl = Person.builder().name("al").build();
+		final Person bert = Person.builder().name("bert").build();
+		return Stream.of(new ComparedPair("the first smaller", al, bert, false, true, false),
+			new ComparedPair("the first greater", bert, al, true, false, false),
+			new ComparedPair("equal, two instances", al, otherAl, false, false, true),
+			new ComparedPair("the same instance", al, al, false, false, true),
+			new ComparedPair("the first null", null, al, false, true, false),
+			new ComparedPair("the second null", al, null, true, false, false),
+			new ComparedPair("both null", null, null, false, false, true));
 	}
 
 	/**
-	 * Test for method {@link ComparatorExtensions#isSame(Comparable, Comparable)}
+	 * Test for the methods {@link ComparatorExtensions#isGreater(Comparable, Comparable)},
+	 * {@link ComparatorExtensions#isSmaller(Comparable, Comparable)} and
+	 * {@link ComparatorExtensions#isSame(Comparable, Comparable)}: for each pair exactly one of
+	 * them is true, and for two equal persons it is isSame, neither isGreater nor isSmaller
+	 *
+	 * @param pair
+	 *            the pair and the answers
 	 */
-	@Test
-	public void testIsSame()
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("comparedPairs")
+	public void testIsGreaterIsSmallerAndIsSame(final ComparedPair pair)
 	{
-		Person person;
-		Person otherPerson;
-		person = Person.builder().name("al").build();
-		otherPerson = Person.builder().name("bert").build();
-		assertFalse(ComparatorExtensions.isSame(otherPerson, person));
-		otherPerson = Person.builder().name("al").build();
-		assertTrue(ComparatorExtensions.isSame(otherPerson, person));
-		assertTrue(ComparatorExtensions.isSame(person, person));
-		assertTrue(ComparatorExtensions.isSame(otherPerson, otherPerson));
+		assertEquals(pair.greater(),
+			ComparatorExtensions.isGreater(pair.object(), pair.compareWithObject()), "isGreater");
+		assertEquals(pair.smaller(),
+			ComparatorExtensions.isSmaller(pair.object(), pair.compareWithObject()), "isSmaller");
+		assertEquals(pair.same(),
+			ComparatorExtensions.isSame(pair.object(), pair.compareWithObject()), "isSame");
 	}
 
 	/**
