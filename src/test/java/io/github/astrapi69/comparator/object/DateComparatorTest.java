@@ -29,12 +29,17 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
+import io.github.astrapi69.comparator.SortOrder;
 import io.github.astrapi69.date.CreateDateExtensions;
 import io.github.astrapi69.test.base.BaseComparatorTestCase;
 
@@ -225,6 +230,108 @@ public class DateComparatorTest extends BaseComparatorTestCase<Date>
 	public void testLessThan()
 	{
 		super.testLessThan();
+	}
+
+	/**
+	 * Two dates, the comparator that compares them and the sign of the result
+	 *
+	 * @param description
+	 *            the name of the case
+	 * @param comparator
+	 *            the comparator
+	 * @param date
+	 *            the first date
+	 * @param compareWithDate
+	 *            the date to compare with
+	 * @param expectedSign
+	 *            the sign of the result: -1, 0 or 1
+	 */
+	record DateComparison(String description, Comparator<Date> comparator, Date date,
+		Date compareWithDate, int expectedSign) {
+		@Override
+		public String toString()
+		{
+			return description;
+		}
+	}
+
+	/**
+	 * The cases of the order of a comparator in the given sort order: ascending puts the earlier
+	 * date and null first, descending the later date first and null last
+	 *
+	 * @param name
+	 *            the name of the comparator
+	 * @param comparator
+	 *            the comparator
+	 * @param sortOrder
+	 *            the sort order the comparator sorts in
+	 * @return the cases
+	 */
+	static Stream<DateComparison> order(final String name, final Comparator<Date> comparator,
+		final SortOrder sortOrder)
+	{
+		final boolean ascending = sortOrder == SortOrder.ASCENDING;
+		final Date earlier = new Date(1_000L);
+		final Date later = new Date(2_000L);
+		// another instance, equal to earlier, so that the comparison does not end at the same
+		// instance
+		final Date otherEarlier = new Date(1_000L);
+		return Stream.of(
+			new DateComparison(
+				name + ", earlier with later: "
+					+ (ascending ? "negative, earlier first" : "positive, later first"),
+				comparator, earlier, later, ascending ? -1 : 1),
+			new DateComparison(
+				name + ", later with earlier: "
+					+ (ascending ? "positive, earlier first" : "negative, later first"),
+				comparator, later, earlier, ascending ? 1 : -1),
+			new DateComparison(name + ", earlier with an equal earlier: zero", comparator, earlier,
+				otherEarlier, 0),
+			new DateComparison(
+				name + ", null with earlier: "
+					+ (ascending ? "negative, null first" : "positive, null last"),
+				comparator, null, earlier, ascending ? -1 : 1),
+			new DateComparison(
+				name + ", earlier with null: "
+					+ (ascending ? "positive, null first" : "negative, null last"),
+				comparator, earlier, null, ascending ? 1 : -1),
+			new DateComparison(name + ", null with null: zero", comparator, null, null, 0));
+	}
+
+	/**
+	 * The cases of every constructor of {@link DateComparator} and of
+	 * {@link DescendingDateComparator}: {@code new DateComparator()} stays ascending, and
+	 * {@code new DateComparator(SortOrder.DESCENDING)}, which the class Javadoc promised, sorts as
+	 * {@link DescendingDateComparator} (#35)
+	 *
+	 * @return the cases
+	 */
+	static Stream<DateComparison> dateComparisons()
+	{
+		return Stream.of(order("new DateComparator()", new DateComparator(), SortOrder.ASCENDING),
+			order("new DateComparator(ASCENDING)", new DateComparator(SortOrder.ASCENDING),
+				SortOrder.ASCENDING),
+			order("new DateComparator(DESCENDING)", new DateComparator(SortOrder.DESCENDING),
+				SortOrder.DESCENDING),
+			order("new DescendingDateComparator()", new DescendingDateComparator(),
+				SortOrder.DESCENDING))
+			.flatMap(Function.identity());
+	}
+
+	/**
+	 * Test method for {@link DateComparator#compare(Date, Date)} with every constructor and for
+	 * {@link DescendingDateComparator#compare(Date, Date)}: the earlier date and null first in
+	 * ascending order, the later date first and null last in descending order
+	 *
+	 * @param comparison
+	 *            the dates, the comparator and the sign of the result
+	 */
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("dateComparisons")
+	public void testCompareOrder(final DateComparison comparison)
+	{
+		Assertions.assertEquals(comparison.expectedSign(), Integer.signum(
+			comparison.comparator().compare(comparison.date(), comparison.compareWithDate())));
 	}
 
 }

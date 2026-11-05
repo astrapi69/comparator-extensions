@@ -38,6 +38,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.meanbean.test.BeanTester;
 
+import io.github.astrapi69.comparator.object.DateComparator;
 import io.github.astrapi69.comparator.object.DescendingDateComparator;
 import io.github.astrapi69.comparator.object.StringComparator;
 import io.github.astrapi69.test.object.Person;
@@ -224,6 +225,7 @@ public class ComparatorExtensionsTest
 		final Date earlier = new RankedDate(0);
 		final Date later = new RankedDate(1_000);
 		final Comparator<Date> descendingDates = new DescendingDateComparator();
+		final Comparator<Date> datesInDescendingOrder = new DateComparator(SortOrder.DESCENDING);
 		final Comparator<String> descendingStrings = new StringComparator(SortOrder.DESCENDING);
 		return Stream.of(
 			new SignedComparison("ascending, 1 with 2: negative, 1 first",
@@ -260,6 +262,12 @@ public class ComparatorExtensionsTest
 			new SignedComparison(
 				"DescendingDateComparator, later with earlier: negative, later first",
 				() -> descendingDates.compare(later, earlier), -1),
+			new SignedComparison(
+				"DateComparator descending, earlier with later: positive, later first (#23, #35)",
+				() -> datesInDescendingOrder.compare(earlier, later), 1),
+			new SignedComparison(
+				"DateComparator descending, later with earlier: negative, later first",
+				() -> datesInDescendingOrder.compare(later, earlier), -1),
 			new SignedComparison("StringComparator descending, a with b: positive, b first",
 				() -> descendingStrings.compare("a", "b"), 1),
 			new SignedComparison(
@@ -270,8 +278,8 @@ public class ComparatorExtensionsTest
 	/**
 	 * Test for method {@link ComparatorExtensions#compare(Comparable, Comparable, SortOrder)} and
 	 * the comparators that go through it: {@link SortOrderComparator},
-	 * {@link DescendingDateComparator} and {@link StringComparator}. The sign of each comparison is
-	 * what the comparison answers for its order
+	 * {@link DescendingDateComparator}, {@link DateComparator} and {@link StringComparator}. The
+	 * sign of each comparison is what the comparison answers for its order
 	 *
 	 * @param comparison
 	 *            the comparison and the sign of its result
