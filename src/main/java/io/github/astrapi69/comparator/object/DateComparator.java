@@ -38,6 +38,14 @@ public class DateComparator implements Comparator<Date>
 {
 
 	/**
+	 * Instantiates a new {@link DateComparator}, which sorts {@link Date} objects in ascending
+	 * order.
+	 */
+	public DateComparator()
+	{
+	}
+
+	/**
 	 * {@inheritDoc}
 	 */
 	@Override

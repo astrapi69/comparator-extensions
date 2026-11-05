@@ -37,6 +37,14 @@ public class DescendingDateComparator implements Comparator<Date>
 {
 
 	/**
+	 * Instantiates a new {@link DescendingDateComparator}, which sorts {@link Date} objects in
+	 * descending order.
+	 */
+	public DescendingDateComparator()
+	{
+	}
+
+	/**
 	 * {@inheritDoc}
 	 */
 	@Override

@@ -46,6 +46,13 @@ public class HashCodeComparator<T> implements Comparator<T>, Serializable
 	private static final long serialVersionUID = -6270968560769922192L;
 
 	/**
+	 * Instantiates a new {@link HashCodeComparator}, which compares objects by their hash code.
+	 */
+	public HashCodeComparator()
+	{
+	}
+
+	/**
 	 * Compare two Objects by the hashcode.
 	 *
 	 * @param object
