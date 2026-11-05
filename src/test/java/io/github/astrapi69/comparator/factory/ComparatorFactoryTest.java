@@ -27,6 +27,7 @@ package io.github.astrapi69.comparator.factory;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.security.NoSuchAlgorithmException;
@@ -63,6 +64,13 @@ public class ComparatorFactoryTest
 	 * The numbers that the random comparators order
 	 */
 	private static final List<Integer> ONE_TO_TEN = IntStream.rangeClosed(1, 10).boxed().toList();
+
+	/**
+	 * The numbers that the random comparators of a list order with a random of their own: a shuffle
+	 * leaves 50 numbers in their order with a chance of 1 in 50!, so a test can assert that their
+	 * order is shuffled without a seed
+	 */
+	private static final List<Integer> ONE_TO_FIFTY = IntStream.rangeClosed(1, 50).boxed().toList();
 
 	/**
 	 * Test for method {@link ComparatorFactory#newDefinedOrderComparator(List)}
@@ -332,6 +340,83 @@ public class ComparatorFactoryTest
 	}
 
 	/**
+	 * A factory method of a random comparator that takes a list
+	 *
+	 * @param description
+	 *            the factory method
+	 * @param newComparator
+	 *            the call of the factory method with the given list
+	 */
+	record RandomComparatorOfAList(String description,
+		Function<List<Integer>, Comparator<Integer>> newComparator) {
+		@Override
+		public String toString()
+		{
+			return description;
+		}
+	}
+
+	/**
+	 * The two factory methods that take a list: {@link ComparatorFactory#newRandomComparator(List)}
+	 * with a random of its own, {@link ComparatorFactory#newRandomComparator(List, SecureRandom)}
+	 * with a new {@link SecureRandom}
+	 *
+	 * @return the factory methods
+	 */
+	static Stream<RandomComparatorOfAList> randomComparatorsOfAList()
+	{
+		return Stream.of(
+			new RandomComparatorOfAList("newRandomComparator(List)",
+				ComparatorFactory::newRandomComparator),
+			new RandomComparatorOfAList("newRandomComparator(List, SecureRandom)",
+				list -> ComparatorFactory.newRandomComparator(list, new SecureRandom())));
+	}
+
+	/**
+	 * Test for the methods {@link ComparatorFactory#newRandomComparator(List)} and
+	 * {@link ComparatorFactory#newRandomComparator(List, SecureRandom)} with a list of the numbers
+	 * {@link #ONE_TO_FIFTY} in their order. What they do today (#24): they shuffle the given list
+	 * itself, and the comparator orders by the given list as it is at each comparison, so it
+	 * follows a later change of it
+	 *
+	 * @param factory
+	 *            the factory method
+	 */
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("randomComparatorsOfAList")
+	public void testNewRandomComparatorShufflesTheGivenList(final RandomComparatorOfAList factory)
+	{
+		final List<Integer> givenList = new ArrayList<>(ONE_TO_FIFTY);
+
+		final Comparator<Integer> comparator = factory.newComparator().apply(givenList);
+
+		assertNotEquals(ONE_TO_FIFTY, givenList, "the given list comes back shuffled today (#24)");
+		assertEquals(givenList, sortedBy(comparator, ONE_TO_FIFTY),
+			"the comparator orders as the given list is now");
+		Collections.reverse(givenList);
+		assertEquals(givenList, sortedBy(comparator, ONE_TO_FIFTY),
+			"the comparator follows a later change of the given list today (#24)");
+	}
+
+	/**
+	 * Test for the methods {@link ComparatorFactory#newRandomComparator(List)} and
+	 * {@link ComparatorFactory#newRandomComparator(List, SecureRandom)} with an unmodifiable list
+	 * of the numbers {@link #ONE_TO_FIFTY}. What they do today (#24): they throw, as they cannot
+	 * shuffle the given list itself
+	 *
+	 * @param factory
+	 *            the factory method
+	 */
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("randomComparatorsOfAList")
+	public void testNewRandomComparatorWithAnUnmodifiableList(final RandomComparatorOfAList factory)
+	{
+		assertThrows(UnsupportedOperationException.class,
+			() -> factory.newComparator().apply(ONE_TO_FIFTY),
+			"an unmodifiable list cannot be shuffled today (#24)");
+	}
+
+	/**
 	 * A factory method of a random comparator for the numbers {@link #ONE_TO_TEN}
 	 *
 	 * @param description
@@ -400,9 +485,24 @@ public class ComparatorFactoryTest
 	 */
 	private static List<Integer> sortedBy(final Comparator<Integer> comparator)
 	{
-		final List<Integer> numbers = new ArrayList<>(ONE_TO_TEN);
-		numbers.sort(comparator);
-		return numbers;
+		return sortedBy(comparator, ONE_TO_TEN);
+	}
+
+	/**
+	 * Sorts a copy of the given numbers with the given comparator
+	 *
+	 * @param comparator
+	 *            the comparator
+	 * @param numbers
+	 *            the numbers
+	 * @return the sorted copy
+	 */
+	private static List<Integer> sortedBy(final Comparator<Integer> comparator,
+		final List<Integer> numbers)
+	{
+		final List<Integer> sorted = new ArrayList<>(numbers);
+		sorted.sort(comparator);
+		return sorted;
 	}
 
 	/**
