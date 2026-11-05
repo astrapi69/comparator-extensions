@@ -308,8 +308,13 @@ too (#21), and a `Makefile` runs the usual tasks (#28; `make help` lists them):
 ```shell
 make build      # clean build: tests, coverage check, formatting check
 make spotless   # format, and write the license headers
-make pitest     # mutation testing, fails below the floor
+make pitest     # mutation testing on GitHub for the pushed branch, fails below the floor
 ```
+
+PIT does not run on your machine: `make pitest` starts `mutation-testing.yml` on GitHub for the
+current branch, which has to be pushed first, and prints how to follow the run; `make pitest-status`
+shows the summary of the newest run of the branch: how many mutants were killed of how many, the
+score, the floor and every mutant that survived.
 
 The versions follow the
 [Simplified Semantic Versioning](https://github.com/lightblueseas/mvn-parent-projects/wiki/Simplified-Semantic-Versioning)
