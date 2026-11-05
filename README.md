@@ -28,7 +28,7 @@ accepts `null`, with `isGreater`, `isSmaller` and `isSame` on top; the null chec
 an `equals` method starts with; a `SortOrder` that carries ascending or descending as a value, from
 a setting or a request; comparators for strings, dates and locales that place `null` themselves; a
 comparator for an order that a list gives; and `ChainableComparator`, the `ComparatorChain` of
-Apache Commons Collections made by static `of` methods. Commons Collections is its one runtime
+Apache Commons Collections made by static `of` methods. Commons Collections is its one
 dependency. silly-collection, silly-strings, file-worker and jobj-compare of this family build on
 it.
 
@@ -62,9 +62,10 @@ later, in favour of `Comparator` and Guava's `Comparators`.
 
 **JDK 25 or newer**, at build and at runtime: from 3 on its jar holds Java 25 bytecode and does
 not load on an older JVM. **2 is the last release for Java 17**, and 1.5 the last for Java 11; a
-project below Java 25 stays on one of them. The one runtime dependency is Apache Commons
-Collections 4.6.0, which the module requires `transitive`: `ChainableComparator` extends its
-`ComparatorChain`.
+project below Java 25 stays on one of them. The one dependency is Apache Commons Collections
+4.6.0, an API dependency: `ChainableComparator` extends its `ComparatorChain`, so the module
+requires it `transitive`, and the pom and the Gradle module metadata put it on the compile class
+path of a project that declares this library.
 
 ## Installation
 
@@ -107,6 +108,10 @@ dependencies {
 ```
 
 The module name is `io.github.astrapisixtynine.comparator.extensions`.
+
+3 publishes commons-collections4 for the runtime only (#36): a project on 3 that uses
+`ChainableComparator`, or that is a module, declares `org.apache.commons:commons-collections4:4.6.0`
+beside it. From 3.1 on the declaration above is enough.
 
 ## Quick start
 
@@ -303,8 +308,13 @@ too (#21), and a `Makefile` runs the usual tasks (#28; `make help` lists them):
 ```shell
 make build      # clean build: tests, coverage check, formatting check
 make spotless   # format, and write the license headers
-make pitest     # mutation testing, fails below the floor
+make pitest     # mutation testing on GitHub for the pushed branch, fails below the floor
 ```
+
+PIT does not run on your machine: `make pitest` starts `mutation-testing.yml` on GitHub for the
+current branch, which has to be pushed first, and prints how to follow the run; `make pitest-status`
+shows the summary of the newest run of the branch: how many mutants were killed of how many, the
+score, the floor and every mutant that survived.
 
 The versions follow the
 [Simplified Semantic Versioning](https://github.com/lightblueseas/mvn-parent-projects/wiki/Simplified-Semantic-Versioning)
