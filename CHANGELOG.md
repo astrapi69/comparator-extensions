@@ -11,6 +11,11 @@ CHANGED:
   have, and how to set the OSSRH user name and password, which no build script reads since
   releases go through the Central Portal (#12). The secrets a release needs are listed at the top
   of `publish.yml` (#16)
+- the README as silly-collection's (#27): what the library is for and when the JDK, Apache Commons
+  Collections or Guava are enough, the requirements, the installation, a quick start whose
+  examples run in `ReadmeExamplesTest`, the packages, the quality, how to verify the release
+  signatures, how a release is made and how to contribute. It names 2 as the last release for
+  Java 17, and 3 as the first release signed by the signing subkey
 - mutation testing and a coverage floor (#21): the tests kill all 83 mutants of PIT 1.30.1 with its
   default mutators, 100%, up from 76 of 83, 91.6%, and the CI build fails below 98% (`mutationThreshold`
   in `build.gradle`; PIT rounds the score half up to a whole percent before it compares), so from 3
