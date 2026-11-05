@@ -24,7 +24,6 @@
  */
 package io.github.astrapi69.comparator;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -61,8 +60,8 @@ import org.junit.jupiter.params.provider.MethodSource;
  * test task hands over what such a consumer compiles against in the system property
  * {@value #CONSUMER_COMPILE_CLASSPATH_PROPERTY}: this project resolved as a consumer's compile
  * class path resolves it, its apiElements, that is the built jar and the api dependencies
- * (gradle/testing.gradle). Today commons-collections4 is an implementation dependency, so it is not
- * on that path, and no consumer compiles (#36)
+ * (gradle/testing.gradle). commons-collections4 is an api dependency, so it is on that path; as an
+ * implementation dependency it was not, and no consumer compiled (#36)
  */
 public class ModulePathTest
 {
@@ -80,13 +79,7 @@ public class ModulePathTest
 		"{", "	requires io.github.astrapisixtynine.comparator.extensions;", "}", "");
 
 	/**
-	 * The javac message of a consumer module whose module path does not hold collections4, the
-	 * module this module requires
-	 */
-	private static final String COLLECTIONS4_MODULE_NOT_FOUND = "module not found: org.apache.commons.collections4";
-
-	/**
-	 * A consumer: what it compiles, on which path, and how javac refuses it today
+	 * A consumer: what it compiles, and on which path
 	 *
 	 * @param description
 	 *            the description of the consumer, the name of the case
@@ -95,11 +88,8 @@ public class ModulePathTest
 	 *            {@code --class-path}
 	 * @param sources
 	 *            the sources of the consumer, by their path relative to the source directory
-	 * @param errorToday
-	 *            a part of the message with which javac refuses the consumer today
 	 */
-	record Consumer(String description, String pathOption, Map<String, String> sources,
-		String errorToday) {
+	record Consumer(String description, String pathOption, Map<String, String> sources) {
 		@Override
 		public String toString()
 		{
@@ -139,15 +129,12 @@ public class ModulePathTest
 		return Stream.of(
 			new Consumer("a module that names ComparatorChain", "--module-path",
 				Map.of("module-info.java", CONSUMER_MODULE_INFO, "consumer/check/UseChain.java",
-					namesComparatorChain),
-				COLLECTIONS4_MODULE_NOT_FOUND),
+					namesComparatorChain)),
 			new Consumer("a module that uses no ChainableComparator", "--module-path",
 				Map.of("module-info.java", CONSUMER_MODULE_INFO, "consumer/check/Compare.java",
-					usesNoChain),
-				COLLECTIONS4_MODULE_NOT_FOUND),
+					usesNoChain)),
 			new Consumer("the README's Chains example on the class path", "--class-path",
-				Map.of("consumer/check/Chains.java", readmeChains),
-				"class file for org.apache.commons.collections4.comparators.ComparatorChain not found"));
+				Map.of("consumer/check/Chains.java", readmeChains)));
 	}
 
 	/**
@@ -182,8 +169,8 @@ public class ModulePathTest
 	}
 
 	/**
-	 * Test that a consumer that declares this library alone does not compile against it today, and
-	 * why: collections4 is not on its compile class path (#36)
+	 * Test that a consumer that declares this library alone compiles against it, as collections4 is
+	 * on its compile class path (#36)
 	 *
 	 * @param consumer
 	 *            the consumer
@@ -216,9 +203,7 @@ public class ModulePathTest
 			final String messages = diagnostics.getDiagnostics().stream()
 				.map(diagnostic -> diagnostic.getMessage(Locale.ENGLISH))
 				.collect(Collectors.joining("; "));
-			assertFalse(compiled, () -> "the consumer compiles today: " + messages);
-			assertTrue(messages.contains(consumer.errorToday()),
-				() -> "javac refuses the consumer for another reason: " + messages);
+			assertTrue(compiled, () -> "the consumer does not compile: " + messages);
 		}
 	}
 

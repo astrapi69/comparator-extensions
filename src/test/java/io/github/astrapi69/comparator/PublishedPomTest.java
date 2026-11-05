@@ -131,8 +131,9 @@ public class PublishedPomTest
 	}
 
 	/**
-	 * Test that the pom gives commons-collections4, the one dependency, the runtime scope today, so
-	 * a Maven consumer does not compile against it (#36)
+	 * Test that the pom gives commons-collections4, the one dependency, the compile scope, so a
+	 * Maven consumer compiles against it, as against {@code ChainableComparator}, its subclass; the
+	 * runtime scope it had kept it off that consumer's compile class path (#36)
 	 *
 	 * @throws ParserConfigurationException
 	 *             if no XML parser can be made
@@ -145,7 +146,7 @@ public class PublishedPomTest
 	public void testScopesOfTheDependencies()
 		throws ParserConfigurationException, SAXException, IOException
 	{
-		assertEquals(Map.of("org.apache.commons:commons-collections4", "runtime"),
+		assertEquals(Map.of("org.apache.commons:commons-collections4", "compile"),
 			scopesOfTheDependencies());
 	}
 
