@@ -33,6 +33,10 @@ CHANGED:
 - the runtime dependency commons-collections4 4.5.0-M2, a milestone, is raised to the stable 4.6.0; the
   only type this library uses from it, `ComparatorChain`, the superclass of `ChainableComparator`, has
   the same public and protected API in both (#11)
+- raised by `versionCatalogUpdate`, test or build only: for the tests guava 33.3.0-jre -> 33.8.0-jre,
+  junit-jupiter 5.11.0 -> 6.1.3, junit-platform-launcher 1.11.0 -> 6.1.3 and test-object 8.2 -> 9.1,
+  and the plugin spotless 8.10.4 -> 8.11.0. None of them reaches a consumer: the runtime class path is
+  commons-collections4 4.6.0 alone (#17)
 - the grgit and hierynomus license plugins are removed: `tagRelease` runs `git tag` itself
   (`gradle/tagging.gradle`), and Spotless enforces the MIT header from
   `src/main/resources/license-header.txt`; the license plugin reported every Java file as missing its
