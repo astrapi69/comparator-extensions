@@ -65,6 +65,13 @@ public class ComparatorFactoryTest
 	private static final List<Integer> ONE_TO_TEN = IntStream.rangeClosed(1, 10).boxed().toList();
 
 	/**
+	 * The numbers that the random comparators of a list order with a random of their own: a shuffle
+	 * leaves 50 numbers in their order with a chance of 1 in 50!, so a test can assert that their
+	 * order is shuffled without a seed
+	 */
+	private static final List<Integer> ONE_TO_FIFTY = IntStream.rangeClosed(1, 50).boxed().toList();
+
+	/**
 	 * Test for method {@link ComparatorFactory#newDefinedOrderComparator(List)}
 	 */
 	@Test
@@ -332,6 +339,85 @@ public class ComparatorFactoryTest
 	}
 
 	/**
+	 * A factory method of a random comparator that takes a list
+	 *
+	 * @param description
+	 *            the factory method
+	 * @param newComparator
+	 *            the call of the factory method with the given list
+	 */
+	record RandomComparatorOfAList(String description,
+		Function<List<Integer>, Comparator<Integer>> newComparator) {
+		@Override
+		public String toString()
+		{
+			return description;
+		}
+	}
+
+	/**
+	 * The two factory methods that take a list: {@link ComparatorFactory#newRandomComparator(List)}
+	 * with a random of its own, {@link ComparatorFactory#newRandomComparator(List, SecureRandom)}
+	 * with a new {@link SecureRandom}
+	 *
+	 * @return the factory methods
+	 */
+	static Stream<RandomComparatorOfAList> randomComparatorsOfAList()
+	{
+		return Stream.of(
+			new RandomComparatorOfAList("newRandomComparator(List)",
+				ComparatorFactory::newRandomComparator),
+			new RandomComparatorOfAList("newRandomComparator(List, SecureRandom)",
+				list -> ComparatorFactory.newRandomComparator(list, new SecureRandom())));
+	}
+
+	/**
+	 * Test for the methods {@link ComparatorFactory#newRandomComparator(List)} and
+	 * {@link ComparatorFactory#newRandomComparator(List, SecureRandom)} with a list of the numbers
+	 * {@link #ONE_TO_FIFTY} in their order: they shuffle a copy (#24), so the given list stays as
+	 * it was and a later change of it does not change the order of the comparator, which is a
+	 * shuffled order, not the order given
+	 *
+	 * @param factory
+	 *            the factory method
+	 */
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("randomComparatorsOfAList")
+	public void testNewRandomComparatorLeavesTheGivenList(final RandomComparatorOfAList factory)
+	{
+		final List<Integer> givenList = new ArrayList<>(ONE_TO_FIFTY);
+
+		final Comparator<Integer> comparator = factory.newComparator().apply(givenList);
+
+		assertEquals(ONE_TO_FIFTY, givenList, "the given list stays as it was");
+		final List<Integer> order = sortedBy(comparator, ONE_TO_FIFTY);
+		assertNotEquals(ONE_TO_FIFTY, order, "a shuffled order, not the order given");
+		Collections.reverse(givenList);
+		assertEquals(order, sortedBy(comparator, ONE_TO_FIFTY),
+			"a later change of the given list does not change the order");
+	}
+
+	/**
+	 * Test for the methods {@link ComparatorFactory#newRandomComparator(List)} and
+	 * {@link ComparatorFactory#newRandomComparator(List, SecureRandom)} with an unmodifiable list
+	 * of the numbers {@link #ONE_TO_FIFTY} in their order: they take it, as they shuffle a copy
+	 * (#24), and the comparator orders the numbers in a shuffled order, not the order given
+	 *
+	 * @param factory
+	 *            the factory method
+	 */
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("randomComparatorsOfAList")
+	public void testNewRandomComparatorTakesAnUnmodifiableList(
+		final RandomComparatorOfAList factory)
+	{
+		final Comparator<Integer> comparator = factory.newComparator().apply(ONE_TO_FIFTY);
+
+		assertNotEquals(ONE_TO_FIFTY, sortedBy(comparator, ONE_TO_FIFTY),
+			"a shuffled order, not the order given");
+	}
+
+	/**
 	 * A factory method of a random comparator for the numbers {@link #ONE_TO_TEN}
 	 *
 	 * @param description
@@ -400,9 +486,24 @@ public class ComparatorFactoryTest
 	 */
 	private static List<Integer> sortedBy(final Comparator<Integer> comparator)
 	{
-		final List<Integer> numbers = new ArrayList<>(ONE_TO_TEN);
-		numbers.sort(comparator);
-		return numbers;
+		return sortedBy(comparator, ONE_TO_TEN);
+	}
+
+	/**
+	 * Sorts a copy of the given numbers with the given comparator
+	 *
+	 * @param comparator
+	 *            the comparator
+	 * @param numbers
+	 *            the numbers
+	 * @return the sorted copy
+	 */
+	private static List<Integer> sortedBy(final Comparator<Integer> comparator,
+		final List<Integer> numbers)
+	{
+		final List<Integer> sorted = new ArrayList<>(numbers);
+		sorted.sort(comparator);
+		return sorted;
 	}
 
 	/**
