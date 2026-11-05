@@ -1,8 +1,75 @@
 ## Change log
 ----------------------
 
-Version 3.1-SNAPSHOT
+Version 3.1
 -------------
+
+3.1 restores what the code's names and Javadoc promise: where the code broke them, it is fixed, and each fix that a
+caller can notice carries a **Note**. Nothing else a caller relies on changes. Measured by the release gate (JDK 25,
+the tree of `RELEASE-3.1`): 341 tests in 15 test classes, none skipped; 143 of 143 lines and 38 of 38 branches
+covered (JaCoCo, floor 98%); 83 of 83 mutants killed, 100% (PIT 1.30.1, floor 98%, in the workflow "Mutation
+testing" on GitHub).
+
+FIXED:
+
+- `ComparatorFactory.newBeanPropertyComparator(function, nullsFirst, ascending)` sorts ascending, in the natural
+  order of the property, for `ascending` true and descending for false, as its Javadoc says; it sorted the other way
+  round. `nullsFirst` places the elements whose property is null first or last in either order, as before. The
+  overload `newBeanPropertyComparator(function)` sorts as before, ascending with the nulls last, and its Javadoc says
+  so (#22).
+  **Note:** a caller that passes `ascending` to the three-argument overload gets the opposite order with 3.1; one that
+  passed `false` to get an ascending order passes `true` now. No caller in the family uses that overload.
+- `ComparatorExtensions.compare(object, compareWithObject, SortOrder.DESCENDING)` compares with the arguments swapped,
+  `compare(compareWithObject, object)`, as `Collections.reverseOrder()` does, where it negated the ascending result.
+  `Comparable.compareTo` may return any negative int, and `-Integer.MIN_VALUE` is `Integer.MIN_VALUE`, so for such a
+  `compareTo` descending kept the smaller element first. `SortOrderComparator`, `StringComparator`,
+  `StringLengthComparator` and `DescendingDateComparator` go through it. `String.compareTo` never returns
+  `Integer.MIN_VALUE`, so the two string comparators sorted right before. `null` still comes first ascending and last
+  descending (#23).
+  **Note:** descending calls the `compareTo` of the second argument and returns its value, where it returned the
+  negated `compareTo` of the first. For a `compareTo` that keeps the contract of `Comparable`, the sign changes only
+  where it returned `Integer.MIN_VALUE`. The value can differ for a `compareTo` whose two results are not each other's
+  negation; `String`, `Integer` and `Date` give the same values as before.
+- `ComparatorFactory.newRandomComparator(list)` and `newRandomComparator(list, secureRandom)` shuffle a copy of the
+  given list and compare by the index in the copy; they shuffled the given list itself, which their Javadoc did not
+  say, and threw an `UnsupportedOperationException` for an unmodifiable list such as `List.of(...)` (#24).
+  **Note:** the caller's list comes back as it was given. A caller that read the shuffled order from it gets it from
+  the comparator instead, by sorting a copy of the elements with it; a later change of the given list no longer
+  changes the order of the comparator
+- the Javadoc of `StringLengthComparator`, its constructors and its `of` factories says what the code does: the longer
+  string comes first in either sort order, and the `SortOrder` decides only between strings of equal length, so
+  `of(SortOrder.DESCENDING)` still puts the longer string first and reverses only the order of strings of equal
+  length; the factories say that null goes where their flag `nullIsGreaterThan` puts it, in either sort order. No
+  behaviour changes; a parameterized test pins the order (#25)
+- the Javadoc of `SortOrderComparator` says what the code does, where it contradicted it: the class is concrete and
+  can be used as it is or extended, as `StringComparator` and `StringLengthComparator` do, where it called the class
+  abstract; `of(SortOrder)` takes the given sort order, where it said the default one. No behaviour changes (#41)
+- commons-collections4 is an API dependency (`api` in `gradle/dependencies.gradle`), as the module has required it
+  `transitive` since #15: `ChainableComparator` extends its `ComparatorChain`. 3 published it for the runtime only: the
+  pom with `<scope>runtime</scope>`, the Gradle module metadata in `runtimeElements` alone. So a project that declared
+  comparator-extensions alone could not compile `ChainableComparator.of(...)` ("cannot access ComparatorChain"), and a
+  module that requires this one did not compile at all ("module not found: org.apache.commons.collections4"). The pom
+  now gives it the compile scope and `apiElements` lists it. `ModulePathTest` compiles its consumers against this
+  project's `apiElements`, which is what a consumer resolves, instead of its own runtime class path, and
+  `PublishedPomTest` reads the scope from the generated pom (#36).
+  **Note:** callers get commons-collections4 4.6.0 on their compile class path from the one dependency line. A project
+  on 3 that declared it itself to work around this can drop that line; one that locks its `compileClasspath` writes its
+  locks again. The class files and the runtime class path are the same.
+- `DateComparator` takes the `SortOrder` its class Javadoc promised: `new DateComparator(SortOrder.DESCENDING)` sorts
+  descending, the later date first and null last, as `DescendingDateComparator` does. The class had only the
+  no-argument constructor, and `new DateComparator(SortOrder.DESCENDING)` did not compile. The class keeps
+  `compare(Date, Date)` and the members of 3 (#35).
+  **Note:** `DateComparator` gains the constructor `DateComparator(SortOrder)` its Javadoc promised; `new
+  DateComparator()` stays ascending, null first. As with any second constructor, `DateComparator::new` passed to a
+  method overloaded for a `Supplier` and a `Function<SortOrder, ...>` no longer compiles; no code in the family does
+  that.
+- the Javadoc of the `of` factories of `StringComparator`, `StringLengthComparator` and `LocaleComparator` says what
+  they return, a `NullCheckComparator` that decorates a new instance of the class, after the JDK's
+  `Comparator.nullsFirst`. It said "the new `StringComparator` object" and so on. No behaviour changes; a
+  parameterized test pins the type and the order (#46).
+  **Note:** the objects these factories return never were instances of the named class: `StringLengthComparator.of()
+  instanceof StringLengthComparator` is false, and a cast to it throws a `ClassCastException`, in 3 as in 3.1. Use the
+  result as a `Comparator`.
 
 CHANGED:
 
@@ -17,8 +84,8 @@ CHANGED:
   signatures, how a release is made and how to contribute. It names 2 as the last release for
   Java 17, and 3 as the first release signed by the signing subkey
 - mutation testing and a coverage floor (#21): the tests kill all 83 mutants of PIT 1.30.1 with its
-  default mutators, 100%, up from 76 of 83, 91.6%, and the CI build fails below 98% (`mutationThreshold`
-  in `build.gradle`; PIT rounds the score half up to a whole percent before it compares), so from 3
+  default mutators, 100%, up from 76 of 83, 91.6%, and the workflow "Mutation testing" fails below 98% (#33;
+  `mutationThreshold` in `build.gradle`; PIT rounds the score half up to a whole percent before it compares), so from 3
   survivors on. The 7 that survived are killed by parameterized tests of what no test checked:
   `isGreater` and `isSmaller` of two equal objects, `newBeanPropertyComparator` with a null property, the
   order of `newRandomComparator(list, random)` and `newRandomMapValuesComparator` under a seeded
@@ -27,6 +94,36 @@ CHANGED:
   lines and 38 branches. CI publishes the mutation score of each push to `develop` or `main` as a
   shields.io endpoint badge on the `gh-pages` branch (`badges/mutation-score-develop.json`,
   `badges/mutation-score-main.json`), also when the score fails the floor
+- `DateComparator`, `DescendingDateComparator`, `HashCodeComparator` and `LocaleComparator` declare their public
+  no-argument constructor with a Javadoc comment, so javadoc prints no warning; the binary interface stays the same,
+  as the default constructor was public too (#32)
+- a javadoc warning fails the build: the `javadoc` task runs with `-Werror` and `failOnError = true`, and `check`
+  depends on it, so `./gradlew build` and CI run javadoc and fail on a warning in every locale, where a text search for
+  "warning" missed the German "Warnung" (#32). **Note:** a javadoc error fails the build now too; `failOnError` was
+  `false`, because the `javadocJar` line `javadoc.properties.failOnError = true` wrote into a copy of the task's
+  properties
+- mutation testing runs on GitHub only, in a workflow of its own, "Mutation testing"
+  (`.github/workflows/mutation-testing.yml`): on a push to `develop` or `main`, on a pull request against them and on
+  demand (`gh workflow run mutation-testing.yml --ref <branch>`). It runs `./gradlew pitest`, which fails below
+  `mutationThreshold`, writes a summary of the run (killed of total, the score as PIT rounds it, the floor, every
+  mutant not detected, also on a red run) and keeps PIT's report as the artifact `pitest-report`. The mutation badge
+  and its publication moved with it out of `gradle.yml`, which builds and reports the coverage. Its check `pitest` and
+  the build's `build` are required for a merge into `develop` (#33)
+- a `Makefile` with the family's targets, as silly-io's (#28): `make help` lists them and is the default goal; `build`,
+  `build-fast`, `test`, `clean`, `spotless`, `spotless-java`, `spotless-misc`, `jacoco-coverage`, `jacoco-report`,
+  `jar`, `javadoc`, `dependencies`, `dependency-updates`, `version-catalog-format`, `version-catalog-update` and
+  `publish-local` run the Gradle task of their name, and `tag-release` refuses a `-SNAPSHOT` version and wants
+  `CONFIRM=yes`, as pushing the tag publishes. `make pitest` runs no PIT on the machine: it starts
+  `mutation-testing.yml` on GitHub for the current branch, which has to be pushed, and `make pitest-status` prints the
+  summary of the newest run of the branch. `publish-local` runs only when called by name, as the release gate needs an
+  empty local Maven repository. No JDK is named: the Gradle toolchain builds with JDK 25
+- the tests of one behaviour with many inputs are parameterized tests with a name for each case (#26):
+  `@ParameterizedTest` tables over records, one row a case, in place of the methods that ran their cases one after
+  the other and of the old methods of one case whose cases newer tables held; 19 `@Test` and 24 `@ParameterizedTest`
+  methods with 341 invocations in 15 test classes, from 36 and 12 with 172. `HashCodeComparatorTest` has again the
+  case #21 lost, two hash codes of opposite signs whose difference does not fit into an int, on which a `compare` that
+  subtracts them fails. JaCoCo stays at 143 of 143 lines and 38 of 38 branches, PIT at 83 of 83 mutants. Tests only,
+  no change to the library
 
 Version 3
 -------------

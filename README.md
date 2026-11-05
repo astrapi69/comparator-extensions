@@ -69,7 +69,7 @@ path of a project that declares this library.
 
 ## Installation
 
-Latest release on Maven Central: 3, for Java 25 (for Java 17: 2)
+Latest release on Maven Central: 3.1, for Java 25 (for Java 17: 2)
 
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.astrapi69/comparator-extensions.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/io.github.astrapi69/comparator-extensions)
 
@@ -77,7 +77,7 @@ Latest release on Maven Central: 3, for Java 25 (for Java 17: 2)
 
 ```toml
 [versions]
-comparator-extensions-version = "3"
+comparator-extensions-version = "3.1"
 
 [libraries]
 comparator-extensions = { module = "io.github.astrapi69:comparator-extensions", version.ref = "comparator-extensions-version" }
@@ -93,7 +93,7 @@ dependencies {
 
 ```groovy
 dependencies {
-    implementation "io.github.astrapi69:comparator-extensions:3"
+    implementation "io.github.astrapi69:comparator-extensions:3.1"
 }
 ```
 
@@ -103,7 +103,7 @@ dependencies {
 <dependency>
     <groupId>io.github.astrapi69</groupId>
     <artifactId>comparator-extensions</artifactId>
-    <version>3</version>
+    <version>3.1</version>
 </dependency>
 ```
 
@@ -229,17 +229,19 @@ details.
 
 ## Quality
 
-Measured on `develop` on 2026-11-05, on JDK 25, with the examples of this README; from 3.1 on each
-release takes the numbers of its own release gate:
+As of 3.1, measured by its release gate (JDK 25, the tree of `RELEASE-3.1`); each release takes
+the numbers of its own gate:
 
 | | |
 |---|---|
-| tests | 42 in 14 test classes, none skipped |
-| line and branch coverage (JaCoCo) | 135 of 135 lines, 38 of 38 branches; a floor below which the build fails comes with 3.1 (#21) |
-| mutation score (PIT) | measured from 3.1 on (#21) |
+| tests | 341 in 15 test classes, none skipped; the tests of one behaviour with many inputs are parameterized, a name for each case (#26) |
+| line and branch coverage (JaCoCo) | 143 of 143 lines, 38 of 38 branches; the build fails below 98% of the lines or of the branches (`jacocoTestCoverageVerification` in `gradle/testing.gradle`) |
+| mutation score (PIT) | 83 of 83 mutants killed, 100%, with PIT 1.30.1 and its default mutators; the run fails below 98% (`mutationThreshold` in `build.gradle`) |
 
-From 3.1 on the CI build runs both checks on every pull request, and publishes the mutation score
-of `develop` as the badge above (#21).
+The CI build runs the tests and the coverage check on every pull request, and the workflow
+"Mutation testing" runs PIT on GitHub, on every pull request and every push to `develop` and
+`main`, and publishes the mutation score of `develop` as the badge above. A pull request into
+`develop` is merged only when both are green.
 
 ## Verifying the release signatures
 
@@ -277,13 +279,18 @@ What a release consists of, in the order it is run:
    on, assigned to the next major release.
 2. **One pull request** with the CHANGELOG entry and `projectVersion` without `-SNAPSHOT`
    (`docs: changelog for X.Y, and the version that carries it`), the full build green on it.
-3. **The release gate** on that pull request's tree: the tests, `pitest` with its floor and
-   `jacocoTestCoverageVerification` with its floor in one run, `--rerun-tasks --no-build-cache`, on
-   JDK 25, the toolchain of the build; the class files are of Java 25 (major version 69), and the
-   resolved dependencies hold no `-SNAPSHOT`. Its numbers go into the CHANGELOG entry and into the
-   Quality section above, in the same pull request, before it is merged.
+3. **The release gate** on that pull request's tree: the tests and `jacocoTestCoverageVerification`
+   with its floor in one run, `--rerun-tasks --no-build-cache`, on JDK 25, the toolchain of the
+   build, with an empty local Maven repository (`-Dmaven.repo.local=<an empty directory>`, as
+   `gradle/repositories.gradle` reads `mavenLocal()` before Central); javadoc prints no warning
+   (the build runs it with `-Werror`), the class files are of Java 25 (major version 69), and the
+   resolved dependencies hold no `-SNAPSHOT`. PIT does not run on a local machine: its numbers and
+   its floor come from the run of "Mutation testing" on the pull request, and again from its run on
+   the merge commit, whose tree is the pull request's tree. Its numbers go into the CHANGELOG entry
+   and into the Quality section above, in the same pull request, before it is merged.
 4. **Tag the merge commit** with `./gradlew tagRelease`, which names it `RELEASE-X.Y`, once its
-   tree is the tree of the gate, and push the tag. `publish.yml` uploads to the Central Portal,
+   tree is the tree of the gate and the "Mutation testing" run on it has the numbers of the gate,
+   and push the tag. `publish.yml` uploads to the Central Portal,
    where the maintainer releases it. A pushed tag is never moved or deleted; a failed run is fixed
    on the branch and run again.
 5. **Verify on Central**: the jar, pom, `.module`, `-sources.jar` and `-javadoc.jar`, their sha1,
@@ -293,7 +300,8 @@ What a release consists of, in the order it is run:
    `git merge --no-ff "RELEASE-X.Y^{commit}" -m "Merge tag RELEASE-X.Y into main"`. Before `main`
    is pushed, `git diff RELEASE-X.Y main` has to be empty; if it is not, nothing is pushed. Never a
    force push: `main` is always the latest release, nothing else.
-8. **Open the next cycle**: `projectVersion` to the next `-SNAPSHOT`.
+8. **Open the next cycle**: `projectVersion` to the next `-SNAPSHOT`, by a pull request, as
+   `develop` takes no direct push.
 
 ## Contributing
 
