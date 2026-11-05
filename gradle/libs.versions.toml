@@ -1,5 +1,5 @@
 [versions]
-commons-collections4-version = "4.5.0-M2"
+commons-collections4-version = "4.6.0"
 gradle-plugin-nmcp-version = "1.6.2"
 gradle-plugin-spotless-version = "8.10.4"
 gradle-plugin-test-results-complete-version = "1.0"

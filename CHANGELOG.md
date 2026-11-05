@@ -27,6 +27,9 @@ CHANGED:
   endpoint this project published to is shut down; its settings are gone, among them the switch that
   held the checksums to md5 and sha1, and snapshots resolve from the Central Portal's snapshot
   repository (#12)
+- the runtime dependency commons-collections4 4.5.0-M2, a milestone, is raised to the stable 4.6.0; the
+  only type this library uses from it, `ComparatorChain`, the superclass of `ChainableComparator`, has
+  the same public and protected API in both (#11)
 - the grgit and hierynomus license plugins are removed: `tagRelease` runs `git tag` itself
   (`gradle/tagging.gradle`), and Spotless enforces the MIT header from
   `src/main/resources/license-header.txt`; the license plugin reported every Java file as missing its
