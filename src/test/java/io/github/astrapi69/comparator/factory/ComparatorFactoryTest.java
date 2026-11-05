@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -167,6 +168,76 @@ public class ComparatorFactoryTest
 	}
 
 	/**
+	 * A comparator of {@link ComparatorFactory#newBeanPropertyComparator(Function)} or
+	 * {@link ComparatorFactory#newBeanPropertyComparator(Function, boolean, boolean)} by the words
+	 * themselves, and the order it sorts the words {@code b, null, c, a} in
+	 *
+	 * @param description
+	 *            the name of the case
+	 * @param comparator
+	 *            the comparator
+	 * @param sortedWords
+	 *            the words sorted with the comparator
+	 */
+	record BeanPropertyOrder(String description, Comparator<String> comparator,
+		List<String> sortedWords) {
+		@Override
+		public String toString()
+		{
+			return description;
+		}
+	}
+
+	/**
+	 * The overload with the function alone and the four combinations of the flags. What they do
+	 * today (#22): ascending true sorts descending and ascending false sorts ascending; the
+	 * overload with the function alone sorts ascending with the null last; nullsFirst places the
+	 * null whatever ascending is
+	 *
+	 * @return the comparators and the orders they sort in
+	 */
+	static Stream<BeanPropertyOrder> beanPropertyOrders()
+	{
+		final List<String> ascendingNullLast = Arrays.asList("a", "b", "c", null);
+		final List<String> descendingNullLast = Arrays.asList("c", "b", "a", null);
+		final List<String> ascendingNullFirst = Arrays.asList(null, "a", "b", "c");
+		final List<String> descendingNullFirst = Arrays.asList(null, "c", "b", "a");
+		return Stream.of(new BeanPropertyOrder("function alone: ascending, the null last",
+			ComparatorFactory.newBeanPropertyComparator(Function.identity()), ascendingNullLast),
+			new BeanPropertyOrder("nulls last, ascending true: descending today (#22)",
+				ComparatorFactory.newBeanPropertyComparator(Function.identity(), false, true),
+				descendingNullLast),
+			new BeanPropertyOrder("nulls last, ascending false: ascending today (#22)",
+				ComparatorFactory.newBeanPropertyComparator(Function.identity(), false, false),
+				ascendingNullLast),
+			new BeanPropertyOrder("nulls first, ascending true: descending today (#22)",
+				ComparatorFactory.newBeanPropertyComparator(Function.identity(), true, true),
+				descendingNullFirst),
+			new BeanPropertyOrder("nulls first, ascending false: ascending today (#22)",
+				ComparatorFactory.newBeanPropertyComparator(Function.identity(), true, false),
+				ascendingNullFirst));
+	}
+
+	/**
+	 * Test for the methods {@link ComparatorFactory#newBeanPropertyComparator(Function)} and
+	 * {@link ComparatorFactory#newBeanPropertyComparator(Function, boolean, boolean)}: the order
+	 * the comparator sorts the words {@code b, null, c, a} in
+	 *
+	 * @param order
+	 *            the comparator and the order it sorts in
+	 */
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("beanPropertyOrders")
+	public void testNewBeanPropertyComparatorOrder(final BeanPropertyOrder order)
+	{
+		final List<String> words = Arrays.asList("b", null, "c", "a");
+
+		words.sort(order.comparator());
+
+		assertEquals(order.sortedWords(), words);
+	}
+
+	/**
 	 * A combination of the flags of
 	 * {@link ComparatorFactory#newBeanPropertyComparator(Function, boolean, boolean)}, and the
 	 * index that an employee without id takes among three employees sorted with it
@@ -192,7 +263,7 @@ public class ComparatorFactoryTest
 	/**
 	 * The four combinations of the flags: where the employee without id goes depends on nullsFirst
 	 * alone. How ascending orders the employees with an id is not a part of these cases, it is the
-	 * one of #22
+	 * one of {@link #beanPropertyOrders()} (#22)
 	 *
 	 * @return the combinations
 	 */
