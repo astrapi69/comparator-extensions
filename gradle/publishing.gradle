@@ -59,23 +59,98 @@ publishing {
             }
         }
     }
-    repositories {
-        maven {
-            if (releaseVersion) {
-                credentials {
-                    username System.getenv("$projectRepositoriesUserNameKey") ?: project.property("$projectRepositoriesUserNameKey")
-                    password System.getenv("$projectRepositoriesPasswordKey") ?: project.property("$projectRepositoriesPasswordKey")
-                }
-            }
-            def releasesRepoUrl = "$projectRepositoriesReleasesRepoUrl" as Object
-            def snapshotsRepoUrl = "$projectRepositoriesSnapshotsRepoUrl" as Object
-            url = releaseVersion ? releasesRepoUrl : snapshotsRepoUrl
+}
+
+// Central Portal publishing, as resourcebundle-core, json-extensions, silly-io and jobj-reflect do it (#12): the
+// OSSRH staging endpoint this file uploaded to is shut down. The per-project "com.gradleup.nmcp" plugin, because
+// this is a single-project build with nothing to aggregate.
+nmcp {
+    publishAllPublicationsToCentralPortal {
+        // a Central Portal user token (central.sonatype.com, Account -> Generate User Token), not
+        // the legacy OSSRH username and password
+        username = System.getenv("CENTRAL_PORTAL_TOKEN_USERNAME") ?: ""
+        password = System.getenv("CENTRAL_PORTAL_TOKEN_PASSWORD") ?: ""
+        publishingType = "USER_MANAGED"
+    }
+}
+
+// Signing follows the KEY, not the version form, so a manual snapshot publish rehearses the release
+// path including the signature; only the release bundle's check and its upload wait for the tag:
+//
+//   release  + key      sign
+//   snapshot + key      sign, so the rehearsal covers the last step too
+//   snapshot, no key    skip - a local build needs no signature
+//   release,  no key    the publish task REFUSES; publishing a release unsigned is worse than
+//                       not publishing it
+def signingKey = System.getenv("GPG_PRIVATE_KEY")
+def signingPassphrase = System.getenv("GPG_PASSPHRASE")
+// The signing subkey's short id, its last 8 hex digits, when GPG_PRIVATE_KEY is an export of that
+// subkey alone and the primary key stays offline (astrapi69/lethenon, docs/launch/release-key.md;
+// astrapi69/json-extensions#3). Without it Gradle takes the primary key, which such an export holds only as a stub, and
+// fails; Gradle 9.7.1 refused the 16-digit form (astrapi69/lethenon#155). Unset, the two-argument
+// call takes GPG_PRIVATE_KEY as a full key.
+def signingKeyId = System.getenv("GPG_KEY_ID")
+def hasInMemoryKey = signingKey && signingPassphrase
+def hasLocalKey = ["signing.keyId", "signing.gnupg.keyName", "signing.secretKeyRingFile"]
+    .any { project.hasProperty(it) }
+
+signing {
+    if (hasInMemoryKey) {
+        if (signingKeyId) {
+            useInMemoryPgpKeys(signingKeyId, signingKey, signingPassphrase)
+        } else {
+            useInMemoryPgpKeys(signingKey, signingPassphrase)
+        }
+        sign publishing.publications.mavenJava
+    }
+    else if (hasLocalKey) {
+        // the local gpg command with the key from signing.gnupg.keyName
+        useGpgCmd()
+        sign publishing.publications.mavenJava
+    }
+}
+
+// Half a key is a misconfiguration, not "no key": GPG_PRIVATE_KEY with an empty GPG_PASSPHRASE (a secret
+// created without a value), or the reverse, signs nothing, and a snapshot went up without its .asc files
+// while CI was green (astrapi69/crypt-data#105, astrapi69/json-extensions#17). Every upload refuses it. Read now, not when
+// the task runs: Task.project at execution time is deprecated and Gradle 10 removes it.
+def halfKeyVersion = version.toString()
+def halfKey = (signingKey && !signingPassphrase) ? "GPG_PASSPHRASE is empty"
+    : (!signingKey && signingPassphrase) ? "GPG_PRIVATE_KEY is empty" : null
+tasks.matching { it.name.startsWith("nmcpPublishAllPublicationsToCentralPortal") }.configureEach {
+    doFirst {
+        if (halfKey) {
+            throw new GradleException("GPG_PRIVATE_KEY and GPG_PASSPHRASE must be set together: ${halfKey}, "
+                + "so ${halfKeyVersion} would go up unsigned. Set the missing secret, or neither.")
+        }
+        if (releaseVersion && !hasInMemoryKey && !hasLocalKey) {
+            throw new GradleException("Refusing to publish ${halfKeyVersion} unsigned. "
+                + "Set GPG_PRIVATE_KEY and GPG_PASSPHRASE, or a local signing.keyId / "
+                + "signing.gnupg.keyName / signing.secretKeyRingFile property.")
         }
     }
 }
 
-signing {
-    if (releaseVersion) {
-        sign publishing.publications.mavenJava
+// An upload to the Central Portal leaves only from CI: publish.yml on a RELEASE-* tag for a release, a manual
+// run of publish.yml for a snapshot. Never from a local tree: test-object 9.1 was released from a clone whose
+// commits never reached the repository (astrapi69/test-object#19, astrapi69/test-object#21,
+// astrapi69/json-extensions#15). Read now, not when the task runs, for the configuration cache. The match is the
+// tasks that send to the Central Portal, releases and snapshots; the nmcpPublish...ToMavenLocal task of the same
+// plugin writes to the local repository and stays allowed.
+def uploadInCi = System.getenv("GITHUB_ACTIONS") == "true"
+def uploadRef = System.getenv("GITHUB_REF") ?: ""
+def uploadVersion = version.toString()
+def uploadIsRelease = !uploadVersion.endsWith("SNAPSHOT")
+tasks.matching { it.name.startsWith("nmcpPublish") && it.name.contains("ToCentralPortal") }.configureEach {
+    doFirst {
+        if (!uploadInCi) {
+            throw new GradleException("Uploads to the Central Portal run only in CI: a RELEASE-* tag runs "
+                + "publish.yml for a release, and a manual run of publish.yml publishes a snapshot. This is a "
+                + "local build (GITHUB_ACTIONS is not set), so ${uploadVersion} is not uploaded.")
+        }
+        if (uploadIsRelease && !uploadRef.startsWith("refs/tags/RELEASE-")) {
+            throw new GradleException("A release uploads only from a RELEASE-* tag. This run builds "
+                + "${uploadRef ?: 'no ref'}, so ${uploadVersion} is not uploaded.")
+        }
     }
 }

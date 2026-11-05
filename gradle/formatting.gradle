@@ -17,5 +17,11 @@ spotless {
         removeUnusedImports()
         // import order file as exported from eclipse
         eclipse("4.21").configFile("src/test/resources/spotless/alpharo-formatter.xml")
+        // Enforces the MIT header, in place of the com.github.hierynomus.license plugin, which reported every
+        // Java file as "Missing header" and passed (ignoreFailures = true); its last release, 0.16.1, reads
+        // Task.project at execution time, which Gradle 9 refuses under the configuration cache and Gradle 10
+        // removes (#12, astrapi69/jobj-reflect#12). The header is the one of src/main/resources/LICENSE.txt
+        // that plugin wrote.
+        licenseHeaderFile(rootProject.file("src/main/resources/license-header.txt"))
     }
 }

@@ -4,6 +4,19 @@
 Version 2.1-SNAPSHOT
 -------------
 
+CHANGED:
+
+- releases go to Maven Central through the Central Portal, as in the rest of the family: the
+  `com.gradleup.nmcp` plugin uploads, the maintainer releases each deployment in the Portal, and a
+  `RELEASE-*` tag runs the new `publish.yml`, which signs with the signing subkey that the secret
+  `GPG_KEY_ID` names. An upload leaves only from CI, a release only from its tag. The OSSRH staging
+  endpoint this project published to is shut down; its settings are gone, among them the switch that
+  held the checksums to md5 and sha1, and snapshots resolve from the Central Portal's snapshot
+  repository (#12)
+- the grgit and hierynomus license plugins are removed: `tagRelease` runs `git tag` itself
+  (`gradle/tagging.gradle`), and Spotless enforces the MIT header from
+  `src/main/resources/license-header.txt`; the license plugin reported every Java file as missing its
+  header and passed (#12)
 
 Version 2
 -------------
