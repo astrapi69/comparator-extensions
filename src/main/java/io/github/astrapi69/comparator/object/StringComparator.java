@@ -57,9 +57,10 @@ public class StringComparator extends SortOrderComparator<String>
 	}
 
 	/**
-	 * Factory method to create a new {@link StringComparator} object
+	 * Factory method to create a null-safe {@link Comparator} that decorates a new
+	 * {@link StringComparator} with a {@link NullCheckComparator}
 	 *
-	 * @return the new {@link StringComparator} object
+	 * @return a new {@link NullCheckComparator} that decorates a new {@link StringComparator}
 	 */
 	public static Comparator<String> of()
 	{
@@ -67,11 +68,12 @@ public class StringComparator extends SortOrderComparator<String>
 	}
 
 	/**
-	 * Factory method to create a new {@link StringComparator} object
+	 * Factory method to create a null-safe {@link Comparator} that decorates a new
+	 * {@link StringComparator} with a {@link NullCheckComparator}
 	 *
 	 * @param nullIsGreaterThan
 	 *            the flag that specifies if null objects are greater than a non-null objects
-	 * @return the new {@link StringComparator} object
+	 * @return a new {@link NullCheckComparator} that decorates a new {@link StringComparator}
 	 */
 	public static Comparator<String> of(final boolean nullIsGreaterThan)
 	{
@@ -79,11 +81,12 @@ public class StringComparator extends SortOrderComparator<String>
 	}
 
 	/**
-	 * Factory method to create a new {@link StringComparator} object
+	 * Factory method to create a null-safe {@link Comparator} that decorates a new
+	 * {@link StringComparator} with a {@link NullCheckComparator}
 	 *
 	 * @param sortOrder
 	 *            the sort order
-	 * @return the new {@link StringComparator} object
+	 * @return a new {@link NullCheckComparator} that decorates a new {@link StringComparator}
 	 */
 	public static Comparator<String> of(final SortOrder sortOrder)
 	{
@@ -91,13 +94,14 @@ public class StringComparator extends SortOrderComparator<String>
 	}
 
 	/**
-	 * Factory method to create a new {@link StringComparator} object
+	 * Factory method to create a null-safe {@link Comparator} that decorates a new
+	 * {@link StringComparator} with a {@link NullCheckComparator}
 	 *
 	 * @param nullIsGreaterThan
 	 *            the flag that specifies if null objects are greater than a non-null objects
 	 * @param sortOrder
 	 *            the sort order
-	 * @return the new {@link StringComparator} object
+	 * @return a new {@link NullCheckComparator} that decorates a new {@link StringComparator}
 	 */
 	public static Comparator<String> of(final SortOrder sortOrder, final boolean nullIsGreaterThan)
 	{
