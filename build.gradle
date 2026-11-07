@@ -49,10 +49,12 @@ java {
 
 tasks.withType(JavaCompile).configureEach { javaCompiler ->
     options.encoding = "UTF-8"
-    // uncomment the next line for build with compiler argument -Xlint:deprecation
-    // options.compilerArgs << "-Xlint:deprecation"
-    // uncomment the next line for build with compiler argument -Xlint:unchecked
-    // options.compilerArgs << "-Xlint:unchecked"
+    // Every lint category of javac in every build, as mystic-crypt has it, so that a new warning shows
+    // (#61). Deliberately without -Werror: a dependency or JDK update that brings a warning must not
+    // break the build, only show it. Without dangling-doc-comments: the license header that Spotless
+    // writes into every file (gradle/formatting.gradle) opens with /**, as in the family, and that
+    // category would flag it in every file
+    options.compilerArgs << "-Xlint:all,-dangling-doc-comments"
 }
 
 tasks.named("test") {

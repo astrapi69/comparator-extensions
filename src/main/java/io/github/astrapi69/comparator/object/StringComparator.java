@@ -65,10 +65,17 @@ public class StringComparator extends SortOrderComparator<String>
 	/**
 	 * Factory method to create a null-safe {@link Comparator} that decorates a new
 	 * {@link StringComparator} with a {@link NullCheckComparator} in which null is greater than
-	 * every non-null string, so null comes last; the same as {@link #of(boolean)} with true
+	 * every non-null string, so null comes last; the same as {@link #of(boolean)} with true.
+	 * <p>
+	 * It hides {@link SortOrderComparator#of()} with a comparator of strings, which javac takes as
+	 * an unchecked conversion: a static method is chosen by the class the caller names, so
+	 * {@code StringComparator.of()} is this factory, and {@code SortOrderComparator.of()} makes a
+	 * plain {@link SortOrderComparator} without the {@link NullCheckComparator}; nothing is
+	 * converted at run time
 	 *
 	 * @return a new {@link NullCheckComparator} that decorates a new {@link StringComparator}
 	 */
+	@SuppressWarnings("unchecked") // hides the generic factory of SortOrderComparator (#61)
 	public static Comparator<String> of()
 	{
 		return StringComparator.of(true);
@@ -91,12 +98,19 @@ public class StringComparator extends SortOrderComparator<String>
 	 * Factory method to create a null-safe {@link Comparator} that decorates a new
 	 * {@link StringComparator} of the given sort order with a {@link NullCheckComparator} in which
 	 * null is greater than every non-null string, so null comes last in either sort order; the same
-	 * as {@link #of(SortOrder, boolean)} with true
+	 * as {@link #of(SortOrder, boolean)} with true.
+	 * <p>
+	 * It hides {@link SortOrderComparator#of(SortOrder)} with a comparator of strings, which javac
+	 * takes as an unchecked conversion: a static method is chosen by the class the caller names, so
+	 * {@code StringComparator.of(SortOrder)} is this factory, and
+	 * {@code SortOrderComparator.of(SortOrder)} makes a plain {@link SortOrderComparator} without
+	 * the {@link NullCheckComparator}; nothing is converted at run time
 	 *
 	 * @param sortOrder
 	 *            the sort order; null is taken as {@link SortOrder#ASCENDING}
 	 * @return a new {@link NullCheckComparator} that decorates a new {@link StringComparator}
 	 */
+	@SuppressWarnings("unchecked") // hides the generic factory of SortOrderComparator (#61)
 	public static Comparator<String> of(final SortOrder sortOrder)
 	{
 		return StringComparator.of(sortOrder, true);
