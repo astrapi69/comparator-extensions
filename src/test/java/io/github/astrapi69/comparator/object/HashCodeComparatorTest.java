@@ -24,11 +24,16 @@
  */
 package io.github.astrapi69.comparator.object;
 
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -117,6 +122,29 @@ public class HashCodeComparatorTest
 	{
 		Assertions.assertEquals(strings.expectedSign(),
 			Integer.signum(comparator.compare(strings.object(), strings.compareWithObject())));
+	}
+
+	/**
+	 * Test for the note of {@link HashCodeComparator} that it imposes orderings inconsistent with
+	 * equals: a {@link TreeSet} and a {@link TreeMap} ordered by it keep one of two strings with
+	 * the same hash code only, Aa and BB, and take the one for the other (#54)
+	 */
+	@Test
+	public void testSortedSetAndMapTakeOneObjectForAnotherWithTheSameHashCode()
+	{
+		final TreeSet<String> set = new TreeSet<>(comparator);
+		Assertions.assertTrue(set.add("Aa"), "Aa is added");
+		Assertions.assertFalse(set.add("BB"), "BB is not added");
+		Assertions.assertEquals(List.of("Aa"), new ArrayList<>(set), "the set keeps Aa only");
+		Assertions.assertTrue(set.contains("BB"), "contains takes Aa for BB");
+		Assertions.assertTrue(set.remove("BB"), "remove takes Aa for BB");
+		Assertions.assertTrue(set.isEmpty(), "Aa is removed");
+
+		final TreeMap<String, Integer> map = new TreeMap<>(comparator);
+		map.put("Aa", 1);
+		map.put("BB", 2);
+		Assertions.assertEquals(List.of("Aa"), new ArrayList<>(map.keySet()), "the key Aa only");
+		Assertions.assertEquals(2, map.get("Aa"), "the value of BB under the key Aa");
 	}
 
 }
