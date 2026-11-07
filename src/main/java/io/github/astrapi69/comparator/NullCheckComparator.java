@@ -32,6 +32,9 @@ import java.util.Comparator;
  * and non-null values. Before the decorated {@link Comparator} will be executed null check will be
  * executed. Over the flag 'nullIsGreaterThan' can be controlled whether null object values are
  * greater or less than non-null object values.
+ * <p>
+ * It is serializable if the decorated comparator is serializable, as the comparator of
+ * {@link Comparator#nullsFirst(Comparator)} is.
  *
  * @param <T>
  *            the type of the objects that the comparator compares; the decorated comparator
@@ -47,6 +50,7 @@ public class NullCheckComparator<T> implements Comparator<T>, Serializable
 	/**
 	 * The decorated comparator.
 	 */
+	@SuppressWarnings("serial") // Not statically typed as Serializable
 	private final Comparator<? super T> decoratedComparator;
 	/**
 	 * The flag that specifies if null objects is greater than non null objects.
@@ -55,7 +59,8 @@ public class NullCheckComparator<T> implements Comparator<T>, Serializable
 
 	/**
 	 * Instantiates a {@link NullCheckComparator} from the given {@link Comparator} object. The flag
-	 * nullIsGreaterThan is set to false so null objects are smaller than non null objects.
+	 * nullIsGreaterThan is set to false so null objects are smaller than non null objects. It is
+	 * serializable if the decorated comparator is serializable.
 	 *
 	 * @param decoratedComparator
 	 *            the {@link Comparator} object that will be decorated
@@ -67,7 +72,7 @@ public class NullCheckComparator<T> implements Comparator<T>, Serializable
 
 	/**
 	 * Instantiates a {@link NullCheckComparator} from the given {@link Comparator} object and the
-	 * given flag.
+	 * given flag. It is serializable if the decorated comparator is serializable.
 	 *
 	 * @param decoratedComparator
 	 *            the {@link Comparator} object that will be decorated
@@ -104,7 +109,8 @@ public class NullCheckComparator<T> implements Comparator<T>, Serializable
 	 * Factory method to create a new {@link NullCheckComparator} object from the given
 	 * {@link Comparator} object, in which null is less than every non-null object, so null comes
 	 * first, as for {@link #NullCheckComparator(Comparator)}; the same as
-	 * {@link #of(Comparator, boolean)} with false.
+	 * {@link #of(Comparator, boolean)} with false. It is serializable if the decorated comparator
+	 * is serializable.
 	 *
 	 * @param <T>
 	 *            the type of the objects that the comparator compares; the decorated comparator
@@ -120,7 +126,7 @@ public class NullCheckComparator<T> implements Comparator<T>, Serializable
 
 	/**
 	 * Factory method to create a new {@link NullCheckComparator} object from the given
-	 * {@link Comparator} object.
+	 * {@link Comparator} object. It is serializable if the decorated comparator is serializable.
 	 *
 	 * @param <T>
 	 *            the type of the objects that the comparator compares; the decorated comparator
@@ -173,7 +179,8 @@ public class NullCheckComparator<T> implements Comparator<T>, Serializable
 		}
 
 		/**
-		 * Build method to create a new {@link NullCheckComparator} object
+		 * Build method to create a new {@link NullCheckComparator} object. It is serializable if
+		 * the decorated comparator is serializable.
 		 *
 		 * @return the new {@link NullCheckComparator} object
 		 */

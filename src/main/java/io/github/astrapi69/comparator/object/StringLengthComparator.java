@@ -24,6 +24,7 @@
  */
 package io.github.astrapi69.comparator.object;
 
+import java.io.Serial;
 import java.util.Comparator;
 
 import io.github.astrapi69.comparator.NullCheckComparator;
@@ -41,11 +42,17 @@ import io.github.astrapi69.comparator.SortOrderComparator;
  * {@link SortOrder#DESCENDING}. This differs from {@code Comparator.comparingInt(String::length)},
  * which puts the shorter string first, and its {@code reversed()}, which puts the longer one first:
  * there the order decides the order of the lengths, here the sort order does not.
+ * <p>
+ * It is serializable, as {@link SortOrderComparator} is, and so is the {@link NullCheckComparator}
+ * that its {@code of} factories decorate it with.
  *
  * @author Asterios Raptis
  */
 public class StringLengthComparator extends SortOrderComparator<String>
 {
+	/** The version of the serialized form (#60) */
+	@Serial
+	private static final long serialVersionUID = 1L;
 
 	/**
 	 * Instantiates a new {@link StringLengthComparator} with the default sort order

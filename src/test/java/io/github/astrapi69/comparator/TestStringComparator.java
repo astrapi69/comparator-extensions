@@ -24,16 +24,22 @@
  */
 package io.github.astrapi69.comparator;
 
+import java.io.Serial;
 import java.util.Comparator;
 
 /**
  * The class {@link TestStringComparator} sorts String objects in ascending order as default. This
  * class is intended only for unit tests
+ * <p>
+ * It is serializable, as {@link SortOrderComparator} is.
  *
  * @author Asterios Raptis
  */
 public class TestStringComparator extends SortOrderComparator<String>
 {
+	/** The version of the serialized form (#60) */
+	@Serial
+	private static final long serialVersionUID = 1L;
 
 	public TestStringComparator()
 	{
