@@ -1,15 +1,18 @@
 """Writes the mutation score of a PIT report as a shields.io endpoint badge.
 
-Usage: mutation-score-badge.py <mutations.xml> <badge.json>
+Usage: mutation-score-badge.py <mutations.xml> <badge.json> <build.gradle>
 
 The score is the share of the mutants that the tests detected, rounded as PIT rounds the score it
-checks against mutationThreshold, so the badge shows the number the build was held to. The badge
-follows https://shields.io/badges/endpoint-badge; README.md reads it from the gh-pages branch, to
-which .github/workflows/gradle.yml publishes it on a push to develop or master.
+checks against mutationThreshold, so the badge shows the number the build was held to. A score
+below mutationThreshold of build.gradle is red whatever its number, as the run fails then; a score
+at or above it, or any score of a build.gradle without a floor, takes the color of its number
+(#68). The badge follows https://shields.io/badges/endpoint-badge; README.md reads it from the
+gh-pages branch, to which .github/workflows/gradle.yml publishes it on a push to develop or master.
 """
 
 import json
 import math
+import re
 import sys
 import xml.etree.ElementTree as ElementTree
 from pathlib import Path
@@ -18,14 +21,22 @@ from pathlib import Path
 COLORS = [(95, "brightgreen"), (90, "green"), (80, "yellowgreen"), (70, "yellow"), (60, "orange")]
 
 
-def color_of(score):
+def floor_of(build_file):
+    """mutationThreshold of the given build.gradle, read as mutation-summary.py reads it, or None"""
+    found = re.search(r"mutationThreshold\s*=\s*(\d+)", build_file.read_text(encoding="utf-8"))
+    return int(found.group(1)) if found else None
+
+
+def color_of(score, floor):
+    if floor is not None and score < floor:
+        return "red"
     for minimum, color in COLORS:
         if score >= minimum:
             return color
     return "red"
 
 
-def badge_of(report):
+def badge_of(report, floor):
     mutations = ElementTree.parse(report).getroot().findall("mutation")
     if not mutations:
         raise SystemExit(f"{report} holds no mutation, so it gives no score")
@@ -42,16 +53,16 @@ def badge_of(report):
         "schemaVersion": 1,
         "label": "mutation score",
         "message": f"{score}%",
-        "color": color_of(score),
+        "color": color_of(score, floor),
     }
 
 
 def main(arguments):
-    if len(arguments) != 2:
+    if len(arguments) != 3:
         raise SystemExit(__doc__)
-    report, badge = (Path(argument) for argument in arguments)
+    report, badge, build_file = (Path(argument) for argument in arguments)
     badge.parent.mkdir(parents=True, exist_ok=True)
-    badge.write_text(json.dumps(badge_of(report)) + "\n", encoding="utf-8")
+    badge.write_text(json.dumps(badge_of(report, floor_of(build_file))) + "\n", encoding="utf-8")
 
 
 if __name__ == "__main__":
