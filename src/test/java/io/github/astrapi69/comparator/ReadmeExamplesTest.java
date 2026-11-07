@@ -150,7 +150,8 @@ class ReadmeExamplesTest
 	}
 
 	/**
-	 * README: "Chains"
+	 * README: "Chains", the block and the JDK expression of its paragraph, which builds the first
+	 * chain of the block in one expression (#65)
 	 */
 	@Test
 	void chains()
@@ -161,6 +162,11 @@ class ReadmeExamplesTest
 		List<String> words = new ArrayList<>(List.of("bb", "c", "ab", "a"));
 		words.sort(byLength); // [a, c, ab, bb]
 		assertEquals(List.of("a", "c", "ab", "bb"), words);
+
+		List<String> sameWords = new ArrayList<>(List.of("bb", "c", "ab", "a"));
+		sameWords
+			.sort(Comparator.comparingInt(String::length).thenComparing(Comparator.naturalOrder()));
+		assertEquals(List.of("a", "c", "ab", "bb"), sameWords);
 
 		ChainableComparator<String> longestFirst = ChainableComparator
 			.of(Comparator.comparingInt(String::length), true);

@@ -201,7 +201,8 @@ ChainableComparator<String> longestFirst = ChainableComparator
 longestFirst.addComparator(Comparator.naturalOrder());
 words.sort(longestFirst); // [ab, bb, a, c]
 
-byLength.addComparator(Comparator.reverseOrder()); // UnsupportedOperationException: a chain is fixed once it has compared
+// UnsupportedOperationException: a chain is fixed once it has compared
+byLength.addComparator(Comparator.reverseOrder());
 ```
 
 **By a property or a defined order.** `ComparatorFactory` makes a comparator from a `Function`
