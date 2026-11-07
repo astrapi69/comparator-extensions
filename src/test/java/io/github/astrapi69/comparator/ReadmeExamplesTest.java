@@ -41,7 +41,6 @@ import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.comparator.factory.ComparatorFactory;
 import io.github.astrapi69.comparator.object.DateComparator;
-import io.github.astrapi69.comparator.object.DescendingDateComparator;
 import io.github.astrapi69.comparator.object.LocaleComparator;
 import io.github.astrapi69.comparator.object.StringComparator;
 
@@ -145,7 +144,7 @@ class ReadmeExamplesTest
 		List<Date> dates = new ArrayList<>(Arrays.asList(later, null, earlier));
 		dates.sort(new DateComparator()); // [null, earlier, later]
 		assertEquals(Arrays.asList(null, earlier, later), dates);
-		dates.sort(new DescendingDateComparator()); // [later, earlier, null]
+		dates.sort(new DateComparator(SortOrder.DESCENDING)); // [later, earlier, null]
 		assertEquals(Arrays.asList(later, earlier, null), dates);
 	}
 

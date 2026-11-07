@@ -302,10 +302,12 @@ public class DateComparatorTest extends BaseComparatorTestCase<Date>
 	 * The cases of every constructor of {@link DateComparator} and of
 	 * {@link DescendingDateComparator}: {@code new DateComparator()} stays ascending, and
 	 * {@code new DateComparator(SortOrder.DESCENDING)}, which the class Javadoc promised, sorts as
-	 * {@link DescendingDateComparator} (#35)
+	 * {@link DescendingDateComparator} (#35), which is deprecated and tested as long as it is there
+	 * (#62)
 	 *
 	 * @return the cases
 	 */
+	@SuppressWarnings("deprecation")
 	static Stream<DateComparison> dateComparisons()
 	{
 		return Stream.of(order("new DateComparator()", new DateComparator(), SortOrder.ASCENDING),
