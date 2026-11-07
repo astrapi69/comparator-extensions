@@ -24,6 +24,7 @@
  */
 package io.github.astrapi69.comparator.object;
 
+import java.io.Serial;
 import java.util.Comparator;
 
 import io.github.astrapi69.comparator.NullCheckComparator;
@@ -36,11 +37,17 @@ import io.github.astrapi69.comparator.SortOrderComparator;
  * and last in descending order; its {@code of} factories decorate it with a
  * {@link NullCheckComparator}, which places null on its own, last unless the factory is told
  * otherwise, in either sort order.
+ * <p>
+ * It is serializable, as {@link SortOrderComparator} is, and so is the {@link NullCheckComparator}
+ * that its {@code of} factories decorate it with.
  *
  * @author Asterios Raptis
  */
 public class StringComparator extends SortOrderComparator<String>
 {
+	/** The version of the serialized form (#60) */
+	@Serial
+	private static final long serialVersionUID = 1L;
 
 	/**
 	 * Instantiates a new {@link StringComparator} object, which sorts in ascending order, null
