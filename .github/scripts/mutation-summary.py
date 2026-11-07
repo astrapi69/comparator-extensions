@@ -19,22 +19,29 @@ def main(report, build_file):
     detected = [m for m in mutations if m.get("detected") == "true"]
     total = len(mutations)
     killed = len(detected)
-    # PIT rounds half up to a whole percent before it compares with mutationThreshold
+    # as the score PIT checks mutationThreshold against, PercentageCalculator.getPercentage(long,
+    # long, int) with the precision 0: half up to a whole percent, and no more than 99 while a
+    # mutant survives (as mutation-score-badge.py)
     score = (100 * killed + total // 2) // total if total else 100
+    if killed < total:
+        score = min(score, 99)
     floor = None
     with open(build_file, encoding="utf-8") as gradle:
         found = re.search(r"mutationThreshold\s*=\s*(\d+)", gradle.read())
         if found:
             floor = int(found.group(1))
     verdict = "passes" if floor is None or score >= floor else "FAILS"
+    floor_text = "not set" if floor is None else f"{floor}%"
     lines = ["## Mutation testing", ""]
     lines.append(f"{killed} of {total} mutants detected, {score}% as PIT rounds it; "
-                 f"the floor is {floor if floor is not None else 'not set'}%, so the run {verdict}.")
+                 f"the floor is {floor_text}, so the run {verdict}.")
     undetected = [m for m in mutations if m.get("detected") != "true"]
     if undetected:
         lines += ["", "| class | method | line | mutator | status |", "|---|---|---|---|---|"]
         for m in undetected:
-            lines.append("| {} | {} | {} | {} | {} |".format(
+            # class and method as code, so that the summary shows a constructor's <init> and does
+            # not take it for an HTML tag
+            lines.append("| `{}` | `{}` | {} | {} | {} |".format(
                 m.findtext("mutatedClass", "").rsplit(".", 1)[-1],
                 m.findtext("mutatedMethod", ""),
                 m.findtext("lineNumber", ""),
