@@ -78,9 +78,16 @@ public class StringLengthComparator extends SortOrderComparator<String>
 	 * {@link StringLengthComparator} of the default sort order {@link SortOrder#ASCENDING} with a
 	 * {@link NullCheckComparator} in which null is greater than a non-null string: the longer
 	 * string comes first, strings of equal length come in their natural order, and null comes last.
+	 * <p>
+	 * It hides {@link SortOrderComparator#of()} with a comparator of strings, which javac takes as
+	 * an unchecked conversion: a static method is chosen by the class the caller names, so
+	 * {@code StringLengthComparator.of()} is this factory, and {@code SortOrderComparator.of()}
+	 * makes a plain {@link SortOrderComparator} without the {@link NullCheckComparator}; nothing is
+	 * converted at run time
 	 *
 	 * @return a new {@link NullCheckComparator} that decorates a new {@link StringLengthComparator}
 	 */
+	@SuppressWarnings("unchecked") // hides the generic factory of SortOrderComparator (#61)
 	public static Comparator<String> of()
 	{
 		return StringLengthComparator.of(true);
@@ -108,12 +115,19 @@ public class StringLengthComparator extends SortOrderComparator<String>
 	 * non-null string: the longer string comes first in either sort order, strings of equal length
 	 * come in their natural order with {@link SortOrder#ASCENDING} and in the reverse of it with
 	 * {@link SortOrder#DESCENDING}, and null comes last in either sort order.
+	 * <p>
+	 * It hides {@link SortOrderComparator#of(SortOrder)} with a comparator of strings, which javac
+	 * takes as an unchecked conversion: a static method is chosen by the class the caller names, so
+	 * {@code StringLengthComparator.of(SortOrder)} is this factory, and
+	 * {@code SortOrderComparator.of(SortOrder)} makes a plain {@link SortOrderComparator} without
+	 * the {@link NullCheckComparator}; nothing is converted at run time
 	 *
 	 * @param sortOrder
 	 *            the sort order of strings of equal length; null is taken as
 	 *            {@link SortOrder#ASCENDING}
 	 * @return a new {@link NullCheckComparator} that decorates a new {@link StringLengthComparator}
 	 */
+	@SuppressWarnings("unchecked") // hides the generic factory of SortOrderComparator (#61)
 	public static Comparator<String> of(final SortOrder sortOrder)
 	{
 		return StringLengthComparator.of(sortOrder, true);
