@@ -26,6 +26,8 @@ package io.github.astrapi69.comparator.factory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
@@ -394,6 +396,148 @@ public class ComparatorFactoryTest
 			map.put("value " + map.size(), value);
 		}
 		return map;
+	}
+
+	/**
+	 * A map that the comparators of its values cannot order, and the exception they throw for it
+	 * when they are made
+	 *
+	 * @param description
+	 *            the name of the case
+	 * @param map
+	 *            makes the map
+	 * @param exception
+	 *            the class of the exception
+	 */
+	record UnorderableValues(String description, Supplier<Map<String, ?>> map,
+		Class<? extends RuntimeException> exception) {
+		@Override
+		public String toString()
+		{
+			return description;
+		}
+	}
+
+	/**
+	 * The maps whose values {@link java.util.TreeSet#TreeSet(java.util.Collection)} refuses: values
+	 * that are not {@link Comparable}, that are not mutually comparable, a null value, and a null
+	 * map
+	 *
+	 * @return the cases
+	 */
+	static Stream<UnorderableValues> unorderableValues()
+	{
+		return Stream.of(
+			new UnorderableValues("a value that is not Comparable: ClassCastException",
+				() -> Map.of("plain", new Object()), ClassCastException.class),
+			new UnorderableValues("an Integer and a String: ClassCastException",
+				() -> Map.of("number", 1, "word", "one"), ClassCastException.class),
+			new UnorderableValues("a null value: NullPointerException",
+				() -> Collections.singletonMap("nothing", null), NullPointerException.class),
+			new UnorderableValues("a null map: NullPointerException", () -> null,
+				NullPointerException.class));
+	}
+
+	/**
+	 * Test for the methods {@link ComparatorFactory#newMapValuesComparator(Map)} and
+	 * {@link ComparatorFactory#newRandomMapValuesComparator(Map, SecureRandom)} with a map whose
+	 * values they cannot order: both throw when they are made
+	 *
+	 * @param values
+	 *            the map and the exception
+	 */
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("unorderableValues")
+	public void testMapValuesComparatorThrowsForUnorderableValues(final UnorderableValues values)
+	{
+		assertThrows(values.exception(),
+			() -> ComparatorFactory.newMapValuesComparator(values.map().get()),
+			"newMapValuesComparator");
+		assertThrows(
+			values.exception(), () -> ComparatorFactory
+				.newRandomMapValuesComparator(values.map().get(), new SecureRandom()),
+			"newRandomMapValuesComparator");
+	}
+
+	/**
+	 * A call of a random comparator factory with a null {@link SecureRandom}
+	 *
+	 * @param description
+	 *            the name of the case
+	 * @param newComparator
+	 *            the call
+	 */
+	record NullRandom(String description, Supplier<Comparator<Integer>> newComparator) {
+		@Override
+		public String toString()
+		{
+			return description;
+		}
+	}
+
+	/**
+	 * The calls with a null random and fewer than two elements to order: no element, one, and a map
+	 * whose two values are equal
+	 *
+	 * @return the cases
+	 */
+	static Stream<NullRandom> nullRandomsForFewerThanTwoElements()
+	{
+		return Stream.of(
+			new NullRandom("newRandomComparator, no element",
+				() -> ComparatorFactory.newRandomComparator(List.of(), null)),
+			new NullRandom("newRandomComparator, one element",
+				() -> ComparatorFactory.newRandomComparator(List.of(1), null)),
+			new NullRandom("newRandomMapValuesComparator, no value",
+				() -> ComparatorFactory.newRandomMapValuesComparator(Map.of(), null)),
+			new NullRandom("newRandomMapValuesComparator, two equal values", () -> ComparatorFactory
+				.newRandomMapValuesComparator(Map.of("a", 1, "b", 1), null)));
+	}
+
+	/**
+	 * Test for the methods {@link ComparatorFactory#newRandomComparator(List, SecureRandom)} and
+	 * {@link ComparatorFactory#newRandomMapValuesComparator(Map, SecureRandom)} with a null random
+	 * and fewer than two elements to order: they return a comparator, as
+	 * {@link Collections#shuffle(List, java.util.Random)} calls the random only when there are two
+	 * elements to swap
+	 *
+	 * @param nullRandom
+	 *            the call
+	 */
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("nullRandomsForFewerThanTwoElements")
+	public void testANullRandomForFewerThanTwoElements(final NullRandom nullRandom)
+	{
+		assertNotNull(nullRandom.newComparator().get());
+	}
+
+	/**
+	 * The calls with a null random and two elements to order
+	 *
+	 * @return the cases
+	 */
+	static Stream<NullRandom> nullRandomsForTwoElements()
+	{
+		return Stream.of(
+			new NullRandom("newRandomComparator, two elements",
+				() -> ComparatorFactory.newRandomComparator(List.of(1, 2), null)),
+			new NullRandom("newRandomMapValuesComparator, two values", () -> ComparatorFactory
+				.newRandomMapValuesComparator(Map.of("a", 1, "b", 2), null)));
+	}
+
+	/**
+	 * Test for the methods {@link ComparatorFactory#newRandomComparator(List, SecureRandom)} and
+	 * {@link ComparatorFactory#newRandomMapValuesComparator(Map, SecureRandom)} with a null random
+	 * and two elements to order: they throw a {@link NullPointerException} when they shuffle
+	 *
+	 * @param nullRandom
+	 *            the call
+	 */
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("nullRandomsForTwoElements")
+	public void testANullRandomForTwoElements(final NullRandom nullRandom)
+	{
+		assertThrows(NullPointerException.class, () -> nullRandom.newComparator().get());
 	}
 
 	/**
