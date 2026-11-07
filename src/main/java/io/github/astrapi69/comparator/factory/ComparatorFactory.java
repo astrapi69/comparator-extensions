@@ -28,6 +28,7 @@ import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -95,19 +96,34 @@ public class ComparatorFactory
 
 	/**
 	 * Factory method for create a new {@link Comparator} from the given {@link List} with the
-	 * defined order of the returned {@link Comparator}
+	 * defined order of the returned {@link Comparator}: an element compares by its position in the
+	 * list, by its first one if the list holds it more than once. The comparator takes the order
+	 * when it is made, so a later change of the given list does not change it. It finds an element
+	 * in the order as a {@link HashMap} finds a key, by {@link Object#hashCode()} and
+	 * {@link Object#equals(Object)}, and null as any other element. An element that is not in the
+	 * order, null too if the list holds no null, compares as smaller than every element of the
+	 * order and as equal to every other such element, so a sorted set or a sorted map made with the
+	 * comparator keeps one of them only;
+	 * {@link org.apache.commons.collections4.comparators.FixedOrderComparator} refuses such an
+	 * element by default
 	 *
 	 * @param <T>
 	 *            the generic type of the elements
 	 * @param definedOrder
-	 *            the defined order
+	 *            the defined order; the method copies it and does not change it
 	 * @return the new {@link Comparator} from the given {@link List} with the defined order of the
 	 *         returned {@link Comparator}
 	 */
 	public static <T> Comparator<T> newDefinedOrderComparator(final List<T> definedOrder)
 	{
 		Objects.requireNonNull(definedOrder);
-		return Comparator.comparing(definedOrder::indexOf);
+		final Map<T, Integer> positions = new HashMap<>();
+		int position = 0;
+		for (final T element : definedOrder)
+		{
+			positions.putIfAbsent(element, position++);
+		}
+		return Comparator.comparingInt(element -> positions.getOrDefault(element, -1));
 	}
 
 	/**
@@ -115,7 +131,9 @@ public class ComparatorFactory
 	 * order. It shuffles a copy of the given list with a new {@link SecureRandom} and compares by
 	 * the index of an element in the copy, as {@link #newRandomComparator(List, SecureRandom)}
 	 * does: the given list stays as it is, it may be unmodifiable, and a later change of it does
-	 * not change the order of the comparator
+	 * not change the order of the comparator. An element that is not in the given list compares as
+	 * smaller than every element of it and as equal to every other such element, as for
+	 * {@link #newDefinedOrderComparator(List)}
 	 *
 	 * @param <T>
 	 *            the generic type of the elements
@@ -134,7 +152,9 @@ public class ComparatorFactory
 	 * Factory method for create a new {@link Comparator} from the given {@link List} with a random
 	 * order. It shuffles a copy of the given list with the given {@link SecureRandom} and compares
 	 * by the index of an element in the copy: the given list stays as it is, it may be
-	 * unmodifiable, and a later change of it does not change the order of the comparator
+	 * unmodifiable, and a later change of it does not change the order of the comparator. An
+	 * element that is not in the given list compares as smaller than every element of it and as
+	 * equal to every other such element, as for {@link #newDefinedOrderComparator(List)}
 	 *
 	 * @param <T>
 	 *            the generic type of the elements
@@ -155,7 +175,10 @@ public class ComparatorFactory
 	}
 
 	/**
-	 * Factory method for create a comparator for random sort of map values
+	 * Factory method for create a comparator for random sort of map values. The comparator takes
+	 * the values of the map when it is made, so a later change of the map does not change it. A
+	 * value that is not a value of the map compares as smaller than every value of the map and as
+	 * equal to every other such value, as for {@link #newDefinedOrderComparator(List)}
 	 *
 	 * @param <K>
 	 *            the generic type of the key
@@ -176,7 +199,10 @@ public class ComparatorFactory
 	}
 
 	/**
-	 * Factory method for create a comparator for sort with the map values
+	 * Factory method for create a comparator for sort with the map values. The comparator takes the
+	 * values of the map when it is made, so a later change of the map does not change it. A value
+	 * that is not a value of the map compares as smaller than every value of the map and as equal
+	 * to every other such value, as for {@link #newDefinedOrderComparator(List)}
 	 *
 	 * @param <K>
 	 *            the generic type of the key

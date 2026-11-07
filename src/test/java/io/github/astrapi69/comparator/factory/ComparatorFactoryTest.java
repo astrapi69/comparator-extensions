@@ -27,6 +27,7 @@ package io.github.astrapi69.comparator.factory;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
@@ -38,7 +39,9 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeSet;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -93,6 +96,182 @@ public class ComparatorFactoryTest
 		// now the actual list have to be sorted as the values list
 		expected = values;
 		assertEquals(actual, expected);
+	}
+
+	/**
+	 * Test for method {@link ComparatorFactory#newDefinedOrderComparator(List)} with a list that
+	 * changes after the call: the comparator takes the order when it is made, so the change changes
+	 * neither its order nor what a sorted set made with it finds (#37)
+	 */
+	@Test
+	public void testNewDefinedOrderComparatorAfterTheListChanges()
+	{
+		final List<String> priorities = new ArrayList<>(List.of("high", "medium", "low"));
+		final Comparator<String> byPriority = ComparatorFactory
+			.newDefinedOrderComparator(priorities);
+		final TreeSet<String> tasks = new TreeSet<>(byPriority);
+		tasks.addAll(List.of("low", "high", "medium"));
+
+		Collections.reverse(priorities);
+
+		assertEquals(List.of("high", "medium", "low"),
+			sortedBy(byPriority, List.of("high", "low", "medium")), "the order given");
+		assertTrue(tasks.contains("low"), "the set finds low");
+		assertTrue(tasks.contains("high"), "the set finds high");
+	}
+
+	/**
+	 * Test for method {@link ComparatorFactory#newDefinedOrderComparator(List)} with an order that
+	 * holds an element twice and holds null: the first occurrence of an element counts, and null
+	 * takes its position as any element does
+	 */
+	@Test
+	public void testNewDefinedOrderComparatorWithADuplicateAndNull()
+	{
+		final Comparator<String> comparator = ComparatorFactory
+			.newDefinedOrderComparator(Arrays.asList("b", null, "a", "b"));
+
+		assertEquals(Arrays.asList("b", null, "a"),
+			sortedBy(comparator, Arrays.asList("a", null, "b")));
+	}
+
+	/**
+	 * Test for method {@link ComparatorFactory#newDefinedOrderComparator(List)} with an order made
+	 * by {@link List#of(Object[])}, which holds no null: null is an element that is not in the
+	 * order, so it compares as smaller than every element of it, where the comparator threw as the
+	 * {@link List#indexOf(Object)} of such a list does (#37)
+	 */
+	@Test
+	public void testNewDefinedOrderComparatorWithNullAndAnOrderWithoutNull()
+	{
+		final Comparator<String> comparator = ComparatorFactory
+			.newDefinedOrderComparator(List.of("high", "low"));
+
+		assertTrue(comparator.compare(null, "high") < 0, "null before high");
+		assertTrue(comparator.compare("low", null) > 0, "low after null");
+	}
+
+	/**
+	 * A factory method that compares by the position of a number in an order of the numbers 3, 1
+	 * and 2
+	 *
+	 * @param description
+	 *            the factory method
+	 * @param comparator
+	 *            makes the comparator in the test, not in the method source: PIT counts what the
+	 *            method source runs as covered by the first invocation alone, and runs only that
+	 *            one against the mutants of a factory method
+	 */
+	record PositionOrder(String description, Supplier<Comparator<Integer>> comparator) {
+		@Override
+		public String toString()
+		{
+			return description;
+		}
+	}
+
+	/**
+	 * The factory methods that compare by the position in an order: the order given, the values of
+	 * a map in their natural order, and the shuffled order of a list and of the values of a map
+	 *
+	 * @return the factory methods
+	 */
+	static Stream<PositionOrder> positionOrders()
+	{
+		final List<Integer> order = List.of(3, 1, 2);
+		final Map<String, Integer> numbersByName = Map.of("three", 3, "one", 1, "two", 2);
+		return Stream.of(
+			new PositionOrder("newDefinedOrderComparator(List)",
+				() -> ComparatorFactory.newDefinedOrderComparator(order)),
+			new PositionOrder("newMapValuesComparator(Map)",
+				() -> ComparatorFactory.newMapValuesComparator(numbersByName)),
+			new PositionOrder("newRandomMapValuesComparator(Map, SecureRandom)",
+				() -> ComparatorFactory.newRandomMapValuesComparator(numbersByName,
+					new SecureRandom())),
+			new PositionOrder("newRandomComparator(List)",
+				() -> ComparatorFactory.newRandomComparator(order)),
+			new PositionOrder("newRandomComparator(List, SecureRandom)",
+				() -> ComparatorFactory.newRandomComparator(order, new SecureRandom())));
+	}
+
+	/**
+	 * Test for the factory methods of {@link #positionOrders()} with numbers that are not in the
+	 * order: such a number compares as smaller than every number of the order and as equal to every
+	 * other such number, so a sorted set made with the comparator keeps one of them only
+	 *
+	 * @param positionOrder
+	 *            the factory method
+	 */
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("positionOrders")
+	public void testAnElementMissingFromTheOrderComesFirst(final PositionOrder positionOrder)
+	{
+		final Comparator<Integer> comparator = positionOrder.comparator().get();
+
+		for (final Integer number : List.of(1, 2, 3))
+		{
+			assertTrue(comparator.compare(99, number) < 0, "99 before " + number);
+			assertTrue(comparator.compare(number, 99) > 0, number + " after 99");
+		}
+		assertEquals(0, comparator.compare(99, 98), "two numbers missing from the order");
+		final TreeSet<Integer> numbers = new TreeSet<>(comparator);
+		numbers.addAll(List.of(99, 98, 1));
+		assertEquals(List.of(99, 1), new ArrayList<>(numbers), "the set keeps one of 99 and 98");
+	}
+
+	/**
+	 * A factory method of a comparator of the values of a map
+	 *
+	 * @param description
+	 *            the factory method
+	 * @param newComparator
+	 *            the call of the factory method with the given map
+	 */
+	record MapValuesFactory(String description,
+		Function<Map<String, Integer>, Comparator<Integer>> newComparator) {
+		@Override
+		public String toString()
+		{
+			return description;
+		}
+	}
+
+	/**
+	 * The two factory methods of a comparator of the values of a map
+	 *
+	 * @return the factory methods
+	 */
+	static Stream<MapValuesFactory> mapValuesFactories()
+	{
+		return Stream.of(
+			new MapValuesFactory("newMapValuesComparator(Map)",
+				ComparatorFactory::newMapValuesComparator),
+			new MapValuesFactory("newRandomMapValuesComparator(Map, SecureRandom)",
+				map -> ComparatorFactory.newRandomMapValuesComparator(map, new SecureRandom())));
+	}
+
+	/**
+	 * Test for the methods {@link ComparatorFactory#newMapValuesComparator(Map)} and
+	 * {@link ComparatorFactory#newRandomMapValuesComparator(Map, SecureRandom)} with a map that
+	 * changes after the call: the comparator takes the values when it is made, so a value the map
+	 * gets later is still not in its order, and a value the map loses keeps its position
+	 *
+	 * @param factory
+	 *            the factory method
+	 */
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("mapValuesFactories")
+	public void testMapValuesComparatorAfterTheMapChanges(final MapValuesFactory factory)
+	{
+		final Map<String, Integer> numbersByName = new HashMap<>(
+			Map.of("one", 1, "two", 2, "three", 3));
+		final Comparator<Integer> comparator = factory.newComparator().apply(numbersByName);
+
+		numbersByName.put("fifty", 50);
+		numbersByName.remove("one");
+
+		assertTrue(comparator.compare(50, 3) < 0, "50 is not in the order");
+		assertTrue(comparator.compare(1, 99) > 0, "1 is in the order");
 	}
 
 	/**
@@ -415,18 +594,19 @@ public class ComparatorFactoryTest
 	}
 
 	/**
-	 * Sorts a copy of the given numbers with the given comparator
+	 * Sorts a copy of the given elements with the given comparator
 	 *
+	 * @param <T>
+	 *            the generic type of the elements
 	 * @param comparator
 	 *            the comparator
-	 * @param numbers
-	 *            the numbers
+	 * @param elements
+	 *            the elements
 	 * @return the sorted copy
 	 */
-	private static List<Integer> sortedBy(final Comparator<Integer> comparator,
-		final List<Integer> numbers)
+	private static <T> List<T> sortedBy(final Comparator<T> comparator, final List<T> elements)
 	{
-		final List<Integer> sorted = new ArrayList<>(numbers);
+		final List<T> sorted = new ArrayList<>(elements);
 		sorted.sort(comparator);
 		return sorted;
 	}
