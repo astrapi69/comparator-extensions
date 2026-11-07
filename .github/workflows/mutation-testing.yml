@@ -84,7 +84,7 @@ jobs:
         if: ${{ !cancelled() && github.event_name == 'push' && (github.ref_name == 'develop' || github.ref_name == 'main') && hashFiles('build/reports/pitest/mutations.xml') != '' }}
         run: >-
           python3 -I .github/scripts/mutation-score-badge.py build/reports/pitest/mutations.xml
-          "$RUNNER_TEMP/badges/mutation-score-$GITHUB_REF_NAME.json"
+          "$RUNNER_TEMP/badges/mutation-score-$GITHUB_REF_NAME.json" build.gradle
       - name: Hand the badge to publish-badges
         if: ${{ !cancelled() && steps.badge.outcome == 'success' }}
         uses: actions/upload-artifact@v7
