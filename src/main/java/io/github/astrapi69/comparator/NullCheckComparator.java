@@ -34,7 +34,9 @@ import java.util.Comparator;
  * greater or less than non-null object values.
  *
  * @param <T>
- *            the generic type of the {@link Comparator} object that will be decorated
+ *            the type of the objects that the comparator compares; the decorated comparator
+ *            compares them or objects of a supertype of theirs, as for
+ *            {@link Comparator#nullsFirst(Comparator)}
  */
 public class NullCheckComparator<T> implements Comparator<T>, Serializable
 {
@@ -45,7 +47,7 @@ public class NullCheckComparator<T> implements Comparator<T>, Serializable
 	/**
 	 * The decorated comparator.
 	 */
-	private final Comparator<T> decoratedComparator;
+	private final Comparator<? super T> decoratedComparator;
 	/**
 	 * The flag that specifies if null objects is greater than non null objects.
 	 */
@@ -58,7 +60,7 @@ public class NullCheckComparator<T> implements Comparator<T>, Serializable
 	 * @param decoratedComparator
 	 *            the {@link Comparator} object that will be decorated
 	 */
-	public NullCheckComparator(final Comparator<T> decoratedComparator)
+	public NullCheckComparator(final Comparator<? super T> decoratedComparator)
 	{
 		this(decoratedComparator, false);
 	}
@@ -72,7 +74,7 @@ public class NullCheckComparator<T> implements Comparator<T>, Serializable
 	 * @param nullIsGreaterThan
 	 *            the flag that specifies if null objects is greater than non null objects.
 	 */
-	public NullCheckComparator(final Comparator<T> decoratedComparator,
+	public NullCheckComparator(final Comparator<? super T> decoratedComparator,
 		final boolean nullIsGreaterThan)
 	{
 		if (decoratedComparator == null)
@@ -89,7 +91,8 @@ public class NullCheckComparator<T> implements Comparator<T>, Serializable
 	 * null before every non-null object by default
 	 *
 	 * @param <T>
-	 *            the generic type of the {@link Comparator} object that will be decorated
+	 *            the type of the objects that the comparator compares; the decorated comparator
+	 *            compares them or objects of a supertype of theirs
 	 * @return the new created {@link NullCheckComparatorBuilder} object
 	 */
 	public static <T> NullCheckComparatorBuilder<T> builder()
@@ -104,12 +107,13 @@ public class NullCheckComparator<T> implements Comparator<T>, Serializable
 	 * {@link #of(Comparator, boolean)} with false.
 	 *
 	 * @param <T>
-	 *            the generic type of the {@link Comparator} object that will be decorated
+	 *            the type of the objects that the comparator compares; the decorated comparator
+	 *            compares them or objects of a supertype of theirs
 	 * @param decoratedComparator
 	 *            the {@link Comparator} object that will be decorated
 	 * @return the new decorated {@link Comparator} object
 	 */
-	public static <T> Comparator<T> of(final Comparator<T> decoratedComparator)
+	public static <T> Comparator<T> of(final Comparator<? super T> decoratedComparator)
 	{
 		return NullCheckComparator.<T> builder().decoratedComparator(decoratedComparator).build();
 	}
@@ -119,14 +123,15 @@ public class NullCheckComparator<T> implements Comparator<T>, Serializable
 	 * {@link Comparator} object.
 	 *
 	 * @param <T>
-	 *            the generic type of the {@link Comparator} object that will be decorated
+	 *            the type of the objects that the comparator compares; the decorated comparator
+	 *            compares them or objects of a supertype of theirs
 	 * @param decoratedComparator
 	 *            the {@link Comparator} object that will be decorated
 	 * @param nullIsGreaterThan
 	 *            the flag that specifies if null objects is greater than non null objects.
 	 * @return the new {@link NullCheckComparator} object
 	 */
-	public static <T> NullCheckComparator<T> of(final Comparator<T> decoratedComparator,
+	public static <T> NullCheckComparator<T> of(final Comparator<? super T> decoratedComparator,
 		final boolean nullIsGreaterThan)
 	{
 		return NullCheckComparator.<T> builder().decoratedComparator(decoratedComparator)
@@ -153,12 +158,13 @@ public class NullCheckComparator<T> implements Comparator<T>, Serializable
 	 * {@link NullCheckComparator} object
 	 *
 	 * @param <T>
-	 *            the generic type of the {@link Comparator} object that will be decorated
+	 *            the type of the objects that the comparator compares; the decorated comparator
+	 *            compares them or objects of a supertype of theirs
 	 */
 	public static class NullCheckComparatorBuilder<T>
 	{
 
-		private Comparator<T> decoratedComparator;
+		private Comparator<? super T> decoratedComparator;
 
 		private boolean nullIsGreaterThan;
 
@@ -184,7 +190,7 @@ public class NullCheckComparator<T> implements Comparator<T>, Serializable
 		 * @return this {@link NullCheckComparatorBuilder} object
 		 */
 		public NullCheckComparatorBuilder<T> decoratedComparator(
-			final Comparator<T> decoratedComparator)
+			final Comparator<? super T> decoratedComparator)
 		{
 			this.decoratedComparator = decoratedComparator;
 			return this;
