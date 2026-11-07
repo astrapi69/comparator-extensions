@@ -24,6 +24,8 @@
  */
 package io.github.astrapi69.comparator.object;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Comparator;
 import java.util.Locale;
 
@@ -34,9 +36,15 @@ import io.github.astrapi69.comparator.NullCheckComparator;
  * {@link Locale#toString()}. It does not check null and throws a {@link NullPointerException} when
  * comparing null; {@link #of()} and {@link #of(boolean)} decorate it with a
  * {@link NullCheckComparator}, which places null.
+ * <p>
+ * It is serializable, and so is the {@link NullCheckComparator} that {@link #of()} and
+ * {@link #of(boolean)} decorate it with.
  */
-public class LocaleComparator implements Comparator<Locale>
+public class LocaleComparator implements Comparator<Locale>, Serializable
 {
+	/** The version of the serialized form (#60) */
+	@Serial
+	private static final long serialVersionUID = 1L;
 
 	/**
 	 * Instantiates a new {@link LocaleComparator}, which does not check for null and throws a

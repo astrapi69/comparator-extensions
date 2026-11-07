@@ -24,6 +24,8 @@
  */
 package io.github.astrapi69.comparator.object;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Comparator;
 import java.util.Date;
 
@@ -33,14 +35,19 @@ import io.github.astrapi69.comparator.SortOrder;
 /**
  * The class {@link DescendingDateComparator} sorts {@link Date} objects in descending order, the
  * later date first and null last, as {@code new DateComparator(SortOrder.DESCENDING)} does.
+ * <p>
+ * It is serializable.
  *
  * @deprecated use {@link DateComparator#DateComparator(SortOrder)} with
  *             {@link SortOrder#DESCENDING}, which sorts the same: the later date first and null
  *             last
  */
 @Deprecated(since = "3.2")
-public class DescendingDateComparator implements Comparator<Date>
+public class DescendingDateComparator implements Comparator<Date>, Serializable
 {
+	/** The version of the serialized form (#60) */
+	@Serial
+	private static final long serialVersionUID = 1L;
 
 	/**
 	 * Instantiates a new {@link DescendingDateComparator}, which sorts {@link Date} objects in

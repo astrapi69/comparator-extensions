@@ -24,6 +24,8 @@
  */
 package io.github.astrapi69.comparator;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Comparator;
 
 /**
@@ -35,12 +37,20 @@ import java.util.Comparator;
  * {@code of} factory methods, or extended, as
  * {@link io.github.astrapi69.comparator.object.StringComparator} and
  * {@link io.github.astrapi69.comparator.object.StringLengthComparator} do.
+ * <p>
+ * It is serializable, and so are its subclasses
+ * {@link io.github.astrapi69.comparator.object.StringComparator} and
+ * {@link io.github.astrapi69.comparator.object.StringLengthComparator} and the
+ * {@link NullCheckComparator} that their {@code of} factories decorate them with.
  *
  * @param <T>
  *            the generic type of the object to compare
  */
-public class SortOrderComparator<T extends Comparable<T>> implements Comparator<T>
+public class SortOrderComparator<T extends Comparable<T>> implements Comparator<T>, Serializable
 {
+	/** The version of the serialized form (#60) */
+	@Serial
+	private static final long serialVersionUID = 1L;
 
 	/** The constant default sort order. */
 	public static final SortOrder DEFAULT_SORT_ORDER = SortOrder.ASCENDING;
