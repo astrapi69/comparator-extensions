@@ -320,21 +320,22 @@ public class ComparatorFactoryTest
 	}
 
 	/**
-	 * The numbers 1.0, 1.00 and 0.5 as the values of a map, in two iteration orders: the
-	 * {@link TreeSet} that collapses the values keeps the one of the two ones that comes first, and
-	 * the one it drops is not in the order, so it comes before every value
+	 * The numbers 1.0, 1.00 and 0.5 as the values of a map, in two iteration orders: the two ones
+	 * take one position, the one of the {@link TreeSet} that collapses the values, so the values
+	 * come in their natural order, the two ones in the order of the map, as a stable sort keeps
+	 * equal elements (#57)
 	 *
 	 * @return the cases
 	 */
 	static Stream<ValuesEqualByCompareTo> valuesEqualByCompareTo()
 	{
 		return Stream.of(
-			new ValuesEqualByCompareTo("1.0 first: 1.00 comes before every value",
+			new ValuesEqualByCompareTo("1.0 first: the natural order, 1.0 before 1.00",
 				List.of(ONE_POINT_ZERO, ONE_POINT_ZERO_ZERO, HALF),
-				List.of(ONE_POINT_ZERO_ZERO, HALF, ONE_POINT_ZERO), -1),
-			new ValuesEqualByCompareTo("1.00 first: 1.0 comes before every value",
+				List.of(HALF, ONE_POINT_ZERO, ONE_POINT_ZERO_ZERO), 0),
+			new ValuesEqualByCompareTo("1.00 first: the natural order, 1.00 before 1.0",
 				List.of(ONE_POINT_ZERO_ZERO, ONE_POINT_ZERO, HALF),
-				List.of(ONE_POINT_ZERO, HALF, ONE_POINT_ZERO_ZERO), 1));
+				List.of(HALF, ONE_POINT_ZERO_ZERO, ONE_POINT_ZERO), 0));
 	}
 
 	/**
@@ -354,6 +355,8 @@ public class ComparatorFactoryTest
 			.newMapValuesComparator(mapOf(values.values()));
 
 		assertEquals(values.sortedValues(), sortedBy(comparator, values.values()));
+		assertEquals(sortedBy(Comparator.naturalOrder(), values.values()), values.sortedValues(),
+			"the natural order");
 		assertEquals(values.signOfTheTwoOnes(),
 			Integer.signum(comparator.compare(ONE_POINT_ZERO_ZERO, ONE_POINT_ZERO)),
 			"1.00 with 1.0");
@@ -361,9 +364,9 @@ public class ComparatorFactoryTest
 
 	/**
 	 * Test for method {@link ComparatorFactory#newRandomMapValuesComparator(Map, SecureRandom)}
-	 * with the values 1.0, 1.00 and 0.5, which the map iterates in this order: the {@link TreeSet}
-	 * that collapses the values drops 1.00, which is then not in the order and comes before every
-	 * value, whatever the seed
+	 * with the values 1.0, 1.00 and 0.5, which the map iterates in this order: 1.00 takes the
+	 * position of 1.0, which the {@link TreeSet} that collapses the values keeps in its place,
+	 * whatever the seed (#57)
 	 *
 	 * @param seed
 	 *            the seed of the random
@@ -380,8 +383,9 @@ public class ComparatorFactoryTest
 		final Comparator<BigDecimal> comparator = ComparatorFactory.newRandomMapValuesComparator(
 			mapOf(List.of(ONE_POINT_ZERO, ONE_POINT_ZERO_ZERO, HALF)), seeded(seed));
 
-		assertTrue(comparator.compare(ONE_POINT_ZERO_ZERO, ONE_POINT_ZERO) < 0, "1.00 before 1.0");
-		assertTrue(comparator.compare(ONE_POINT_ZERO_ZERO, HALF) < 0, "1.00 before 0.5");
+		assertEquals(0, comparator.compare(ONE_POINT_ZERO_ZERO, ONE_POINT_ZERO), "1.00 as 1.0");
+		assertEquals(Integer.signum(comparator.compare(ONE_POINT_ZERO, HALF)),
+			Integer.signum(comparator.compare(ONE_POINT_ZERO_ZERO, HALF)), "1.00 with 0.5 as 1.0");
 	}
 
 	/**
