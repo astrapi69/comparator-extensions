@@ -93,6 +93,8 @@ public class NullPlacementTest
 	 *
 	 * @return the cases
 	 */
+	@SuppressWarnings("deprecation") // DescendingDateComparator is tested as long as it is there
+										// (#62)
 	static Stream<SortedWithNull<?>> sortedWithNull()
 	{
 		final List<String> words = Arrays.asList("b", null, "a");

@@ -181,8 +181,8 @@ locales.sort(LocaleComparator.of()); // [null, de, de_DE, en]: by toString, null
 Date earlier = new Date(0);
 Date later = new Date(1_000);
 List<Date> dates = new ArrayList<>(Arrays.asList(later, null, earlier));
-dates.sort(new DateComparator());           // [null, earlier, later]
-dates.sort(new DescendingDateComparator()); // [later, earlier, null]
+dates.sort(new DateComparator());                     // [null, earlier, later]
+dates.sort(new DateComparator(SortOrder.DESCENDING)); // [later, earlier, null]
 ```
 
 **Chains.** `ChainableComparator` is the `ComparatorChain` of Apache Commons Collections, made by
