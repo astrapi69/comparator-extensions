@@ -25,10 +25,8 @@
 package io.github.astrapi69.comparator.factory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.security.NoSuchAlgorithmException;
@@ -102,8 +100,8 @@ public class ComparatorFactoryTest
 
 	/**
 	 * Test for method {@link ComparatorFactory#newDefinedOrderComparator(List)} with a list that
-	 * changes after the call: the comparator reads the list at every comparison, so its order
-	 * follows the change, and a sorted set made with it no longer finds its own elements
+	 * changes after the call: the comparator takes the order when it is made, so the change changes
+	 * neither its order nor what a sorted set made with it finds (#37)
 	 */
 	@Test
 	public void testNewDefinedOrderComparatorAfterTheListChanges()
@@ -116,11 +114,10 @@ public class ComparatorFactoryTest
 
 		Collections.reverse(priorities);
 
-		assertEquals(List.of("low", "medium", "high"),
-			sortedBy(byPriority, List.of("high", "low", "medium")),
-			"the order of the changed list");
-		assertFalse(tasks.contains("low"), "the set does not find low");
-		assertFalse(tasks.contains("high"), "the set does not find high");
+		assertEquals(List.of("high", "medium", "low"),
+			sortedBy(byPriority, List.of("high", "low", "medium")), "the order given");
+		assertTrue(tasks.contains("low"), "the set finds low");
+		assertTrue(tasks.contains("high"), "the set finds high");
 	}
 
 	/**
@@ -140,8 +137,9 @@ public class ComparatorFactoryTest
 
 	/**
 	 * Test for method {@link ComparatorFactory#newDefinedOrderComparator(List)} with an order made
-	 * by {@link List#of(Object[])}, which holds no null: the comparator throws for null, as the
-	 * {@link List#indexOf(Object)} of such a list does
+	 * by {@link List#of(Object[])}, which holds no null: null is an element that is not in the
+	 * order, so it compares as smaller than every element of it, where the comparator threw as the
+	 * {@link List#indexOf(Object)} of such a list does (#37)
 	 */
 	@Test
 	public void testNewDefinedOrderComparatorWithNullAndAnOrderWithoutNull()
@@ -149,7 +147,8 @@ public class ComparatorFactoryTest
 		final Comparator<String> comparator = ComparatorFactory
 			.newDefinedOrderComparator(List.of("high", "low"));
 
-		assertThrows(NullPointerException.class, () -> comparator.compare(null, "high"));
+		assertTrue(comparator.compare(null, "high") < 0, "null before high");
+		assertTrue(comparator.compare("low", null) > 0, "low after null");
 	}
 
 	/**
