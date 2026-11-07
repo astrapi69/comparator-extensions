@@ -29,10 +29,12 @@ import java.util.Comparator;
 /**
  * The class {@link SortOrderComparator} compares {@link Comparable} objects in the given sort
  * order, ascending or descending, as
- * {@link ComparatorExtensions#compare(Comparable, Comparable, SortOrder)} does. The default sort
- * order is ascending. It can be used as it is, created by its constructors or its {@code of}
- * factory methods, or extended, as {@link io.github.astrapi69.comparator.object.StringComparator}
- * and {@link io.github.astrapi69.comparator.object.StringLengthComparator} do.
+ * {@link ComparatorExtensions#compare(Comparable, Comparable, SortOrder)} does, so null comes first
+ * in ascending order and last in descending order. The default sort order is ascending, and a null
+ * sort order is taken as ascending. It can be used as it is, created by its constructors or its
+ * {@code of} factory methods, or extended, as
+ * {@link io.github.astrapi69.comparator.object.StringComparator} and
+ * {@link io.github.astrapi69.comparator.object.StringLengthComparator} do.
  *
  * @param <T>
  *            the generic type of the object to compare
@@ -57,7 +59,7 @@ public class SortOrderComparator<T extends Comparable<T>> implements Comparator<
 	 * Instantiates a new {@link SortOrderComparator} with the given sort order.
 	 *
 	 * @param sortOrder
-	 *            the sort order
+	 *            the sort order; null is taken as {@link SortOrder#ASCENDING}
 	 */
 	public SortOrderComparator(final SortOrder sortOrder)
 	{
@@ -83,7 +85,7 @@ public class SortOrderComparator<T extends Comparable<T>> implements Comparator<
 	 * @param <T>
 	 *            the generic type of the object to compare
 	 * @param sortOrder
-	 *            the sort order
+	 *            the sort order; null is taken as {@link SortOrder#ASCENDING}
 	 *
 	 * @return the new {@link Comparator} object
 	 */

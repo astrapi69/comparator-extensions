@@ -31,7 +31,11 @@ import io.github.astrapi69.comparator.SortOrder;
 import io.github.astrapi69.comparator.SortOrderComparator;
 
 /**
- * The class {@link StringComparator} sorts String objects in ascending order as default.
+ * The class {@link StringComparator} sorts String objects in ascending order as default. Its
+ * constructors compare as {@link SortOrderComparator} does, so null comes first in ascending order
+ * and last in descending order; its {@code of} factories decorate it with a
+ * {@link NullCheckComparator}, which places null on its own, last unless the factory is told
+ * otherwise, in either sort order.
  *
  * @author Asterios Raptis
  */
@@ -39,17 +43,19 @@ public class StringComparator extends SortOrderComparator<String>
 {
 
 	/**
-	 * Instantiates a new {@link StringComparator} object
+	 * Instantiates a new {@link StringComparator} object, which sorts in ascending order, null
+	 * first
 	 */
 	public StringComparator()
 	{
 	}
 
 	/**
-	 * Instantiates a new {@link StringComparator} object
+	 * Instantiates a new {@link StringComparator} object, which sorts in the given sort order, null
+	 * first in ascending order and last in descending order
 	 *
 	 * @param sortOrder
-	 *            the sort order
+	 *            the sort order; null is taken as {@link SortOrder#ASCENDING}
 	 */
 	public StringComparator(final SortOrder sortOrder)
 	{
@@ -58,7 +64,8 @@ public class StringComparator extends SortOrderComparator<String>
 
 	/**
 	 * Factory method to create a null-safe {@link Comparator} that decorates a new
-	 * {@link StringComparator} with a {@link NullCheckComparator}
+	 * {@link StringComparator} with a {@link NullCheckComparator} in which null is greater than
+	 * every non-null string, so null comes last; the same as {@link #of(boolean)} with true
 	 *
 	 * @return a new {@link NullCheckComparator} that decorates a new {@link StringComparator}
 	 */
@@ -82,10 +89,12 @@ public class StringComparator extends SortOrderComparator<String>
 
 	/**
 	 * Factory method to create a null-safe {@link Comparator} that decorates a new
-	 * {@link StringComparator} with a {@link NullCheckComparator}
+	 * {@link StringComparator} of the given sort order with a {@link NullCheckComparator} in which
+	 * null is greater than every non-null string, so null comes last in either sort order; the same
+	 * as {@link #of(SortOrder, boolean)} with true
 	 *
 	 * @param sortOrder
-	 *            the sort order
+	 *            the sort order; null is taken as {@link SortOrder#ASCENDING}
 	 * @return a new {@link NullCheckComparator} that decorates a new {@link StringComparator}
 	 */
 	public static Comparator<String> of(final SortOrder sortOrder)
@@ -95,12 +104,13 @@ public class StringComparator extends SortOrderComparator<String>
 
 	/**
 	 * Factory method to create a null-safe {@link Comparator} that decorates a new
-	 * {@link StringComparator} with a {@link NullCheckComparator}
+	 * {@link StringComparator} of the given sort order with a {@link NullCheckComparator}: null
+	 * comes last or first as the given flag says, in either sort order
 	 *
+	 * @param sortOrder
+	 *            the sort order; null is taken as {@link SortOrder#ASCENDING}
 	 * @param nullIsGreaterThan
 	 *            the flag that specifies if null objects are greater than a non-null objects
-	 * @param sortOrder
-	 *            the sort order
 	 * @return a new {@link NullCheckComparator} that decorates a new {@link StringComparator}
 	 */
 	public static Comparator<String> of(final SortOrder sortOrder, final boolean nullIsGreaterThan)

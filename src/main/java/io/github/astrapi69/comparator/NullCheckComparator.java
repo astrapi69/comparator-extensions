@@ -53,7 +53,7 @@ public class NullCheckComparator<T> implements Comparator<T>, Serializable
 
 	/**
 	 * Instantiates a {@link NullCheckComparator} from the given {@link Comparator} object. The flag
-	 * nullIsGreaterThan is set to false so null objects are smaller then non null objects.
+	 * nullIsGreaterThan is set to false so null objects are smaller than non null objects.
 	 *
 	 * @param decoratedComparator
 	 *            the {@link Comparator} object that will be decorated
@@ -84,7 +84,9 @@ public class NullCheckComparator<T> implements Comparator<T>, Serializable
 	}
 
 	/**
-	 * Factory method to create a new {@link NullCheckComparatorBuilder} object
+	 * Factory method to create a new {@link NullCheckComparatorBuilder} object. Its flag
+	 * nullIsGreaterThan is false until it is set, so the {@link NullCheckComparator} it builds puts
+	 * null before every non-null object by default
 	 *
 	 * @param <T>
 	 *            the generic type of the {@link Comparator} object that will be decorated
@@ -97,7 +99,9 @@ public class NullCheckComparator<T> implements Comparator<T>, Serializable
 
 	/**
 	 * Factory method to create a new {@link NullCheckComparator} object from the given
-	 * {@link Comparator} object.
+	 * {@link Comparator} object, in which null is less than every non-null object, so null comes
+	 * first, as for {@link #NullCheckComparator(Comparator)}; the same as
+	 * {@link #of(Comparator, boolean)} with false.
 	 *
 	 * @param <T>
 	 *            the generic type of the {@link Comparator} object that will be decorated

@@ -30,17 +30,18 @@ import java.util.Locale;
 import io.github.astrapi69.comparator.NullCheckComparator;
 
 /**
- * The class {@link LocaleComparator} compares {@linkplain Locale} objects. This Comparator does not
- * check null, for null check you can decorate it with the
- * {@link NullCheckComparator#of(Comparator)}. an example is in the unit test class from
- * {@linkplain NullCheckComparator}.
+ * The class {@link LocaleComparator} compares {@linkplain Locale} objects by their
+ * {@link Locale#toString()}. It does not check null and throws a {@link NullPointerException} when
+ * comparing null; {@link #of()} and {@link #of(boolean)} decorate it with a
+ * {@link NullCheckComparator}, which places null.
  */
 public class LocaleComparator implements Comparator<Locale>
 {
 
 	/**
-	 * Instantiates a new {@link LocaleComparator}, which does not check for null; the factory
-	 * methods {@link #of()} and {@link #of(boolean)} decorate it with a null check.
+	 * Instantiates a new {@link LocaleComparator}, which does not check for null and throws a
+	 * {@link NullPointerException} when comparing null; the factory methods {@link #of()} and
+	 * {@link #of(boolean)} decorate it with a null check.
 	 */
 	public LocaleComparator()
 	{
@@ -48,7 +49,8 @@ public class LocaleComparator implements Comparator<Locale>
 
 	/**
 	 * Factory method to create a null-safe {@link Comparator} that decorates a new
-	 * {@link LocaleComparator} with a {@link NullCheckComparator}.
+	 * {@link LocaleComparator} with a {@link NullCheckComparator} in which null is less than every
+	 * non-null locale, so null comes first; the same as {@link #of(boolean)} with false.
 	 *
 	 * @return a new {@link NullCheckComparator} that decorates a new {@link LocaleComparator}
 	 */

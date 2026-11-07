@@ -34,7 +34,10 @@ public final class ComparatorExtensions
 	}
 
 	/**
-	 * Compares the given objects and returns the int value.
+	 * Compares the given objects in their natural order, null before every non-null object: two
+	 * nulls, or the same object on both sides, compare as 0, null with a non-null object as -1, a
+	 * non-null object with null as 1, and two non-null objects as
+	 * {@link Comparable#compareTo(Object)} compares them.
 	 *
 	 * @param <T>
 	 *            the generic type
@@ -125,7 +128,7 @@ public final class ComparatorExtensions
 	 * @param compareWithObject
 	 *            the object to compare with.
 	 * @param sortOrder
-	 *            the sort order
+	 *            the sort order; null is taken as {@link SortOrder#ASCENDING}
 	 * @return the int
 	 */
 	public static <T extends Comparable<T>> int compare(final T object, final T compareWithObject,
