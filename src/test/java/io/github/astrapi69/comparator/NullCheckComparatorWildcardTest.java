@@ -26,48 +26,48 @@ package io.github.astrapi69.comparator;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.text.Collator;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
-import java.util.stream.Collectors;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-import javax.tools.Diagnostic;
-import javax.tools.DiagnosticCollector;
-import javax.tools.JavaCompiler;
-import javax.tools.JavaFileObject;
-import javax.tools.StandardJavaFileManager;
-import javax.tools.ToolProvider;
-
-import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 /**
- * Test for the type of the comparator that {@link NullCheckComparator} decorates, with the forms of
- * {@link java.util.Comparator#nullsFirst(java.util.Comparator)} and
- * {@link java.util.Comparator#nullsLast(java.util.Comparator)}, which take a
- * {@code Comparator<? super T>}: each form is compiled with the JDK compiler against the classes of
- * this library, once with {@link NullCheckComparator} and once with the JDK method (#38)
+ * Test for the type of the comparator that {@link NullCheckComparator} decorates: it takes a
+ * {@code Comparator<? super T>}, as {@link Comparator#nullsFirst(Comparator)} and
+ * {@link Comparator#nullsLast(Comparator)} do, so their forms compile with it and sort as they do
+ * (#38). Each form is a statement of this class: it compiles, or the build fails
  */
 public class NullCheckComparatorWildcardTest
 {
 
+	/** A comparator of a supertype of {@link String}, by the length */
+	private static final Comparator<CharSequence> BY_LENGTH = Comparator
+		.comparingInt(CharSequence::length);
+
+	/** A comparator of {@link Object}, as {@link Collator} is one */
+	private static final Collator GERMAN = Collator.getInstance(Locale.GERMAN);
+
 	/**
-	 * A statement with {@link NullCheckComparator}, the same statement with the JDK method, and the
-	 * first line of the error javac gives for the first
+	 * A form of {@link Comparator#nullsFirst(Comparator)} or
+	 * {@link Comparator#nullsLast(Comparator)} with {@link NullCheckComparator} in its place, and
+	 * the JDK comparator it sorts as
 	 *
 	 * @param description
 	 *            the name of the case
-	 * @param statement
-	 *            the statement with {@link NullCheckComparator}
-	 * @param jdkStatement
-	 *            the same statement with {@code Comparator.nullsFirst} or {@code nullsLast}
-	 * @param error
-	 *            the first line of the error javac gives for the statement
+	 * @param sort
+	 *            sorts the given names with the form, in the test, not in the method source: PIT
+	 *            counts what the method source runs as covered by the first invocation alone
+	 * @param jdkComparator
+	 *            the comparator of the JDK form
 	 */
-	record Form(String description, String statement, String jdkStatement, String error) {
+	record Form(String description, Consumer<List<String>> sort, Comparator<String> jdkComparator) {
 		@Override
 		public String toString()
 		{
@@ -76,9 +76,9 @@ public class NullCheckComparatorWildcardTest
 	}
 
 	/**
-	 * The seven forms of #38: a comparator whose type the call infers, a comparator of a supertype
-	 * where the target type is the subtype, and a comparator of {@code ? super T} in a generic
-	 * method
+	 * The seven forms of #38 that did not compile: a comparator whose type the call infers, a
+	 * comparator of a supertype where the target type is the subtype, and a comparator of
+	 * {@code ? super T} in a generic method
 	 *
 	 * @return the forms
 	 */
@@ -86,99 +86,66 @@ public class NullCheckComparatorWildcardTest
 	{
 		return Stream.of(
 			new Form("of(naturalOrder())",
-				"names.sort(NullCheckComparator.of(Comparator.naturalOrder()));",
-				"names.sort(Comparator.nullsFirst(Comparator.naturalOrder()));",
-				"no suitable method found for of(java.util.Comparator<T>)"),
+				names -> names.sort(NullCheckComparator.of(Comparator.naturalOrder())),
+				Comparator.nullsFirst(Comparator.naturalOrder())),
 			new Form("of(naturalOrder(), true)",
-				"names.sort(NullCheckComparator.of(Comparator.naturalOrder(), true));",
-				"names.sort(Comparator.nullsLast(Comparator.naturalOrder()));",
-				"no suitable method found for of(java.util.Comparator<T>,boolean)"),
+				names -> names.sort(NullCheckComparator.of(Comparator.naturalOrder(), true)),
+				Comparator.nullsLast(Comparator.naturalOrder())),
 			new Form("new NullCheckComparator<>(naturalOrder())",
-				"names.sort(new NullCheckComparator<>(Comparator.naturalOrder()));",
-				"names.sort(Comparator.nullsFirst(Comparator.naturalOrder()));",
-				"cannot infer type arguments for io.github.astrapi69.comparator.NullCheckComparator<>"),
-			new Form("of(a comparator of CharSequence) as a comparator of String",
-				"Comparator<String> c = NullCheckComparator.of(byLength);",
-				"Comparator<String> c = Comparator.nullsFirst(byLength);",
-				"incompatible types: inference variable T has incompatible equality constraints "
-					+ "java.lang.String,java.lang.CharSequence"),
-			new Form("builder() with a comparator of CharSequence",
-				"Comparator<String> c = NullCheckComparator.<String> builder()"
-					+ ".decoratedComparator(byLength).build();",
-				"Comparator<String> c = Comparator.nullsFirst(byLength);",
-				"incompatible types: java.util.Comparator<java.lang.CharSequence> cannot be "
-					+ "converted to java.util.Comparator<java.lang.String>"),
-			new Form("of(a Collator, a comparator of Object) as a comparator of String",
-				"Comparator<String> c = NullCheckComparator.of(german);",
-				"Comparator<String> c = Comparator.nullsFirst(german);",
-				"incompatible types: inference variable T has incompatible equality constraints "
-					+ "java.lang.String,java.lang.Object"),
+				names -> names.sort(new NullCheckComparator<>(Comparator.naturalOrder())),
+				Comparator.nullsFirst(Comparator.naturalOrder())),
+			new Form("of(a comparator of CharSequence) as a comparator of String", names -> {
+				final Comparator<String> comparator = NullCheckComparator.of(BY_LENGTH);
+				names.sort(comparator);
+			}, Comparator.nullsFirst(BY_LENGTH)),
+			new Form("builder() with a comparator of CharSequence", names -> {
+				final Comparator<String> comparator = NullCheckComparator.<String> builder()
+					.decoratedComparator(BY_LENGTH).build();
+				names.sort(comparator);
+			}, Comparator.nullsFirst(BY_LENGTH)),
+			new Form("of(a Collator, a comparator of Object) as a comparator of String", names -> {
+				final Comparator<String> comparator = NullCheckComparator.of(GERMAN);
+				names.sort(comparator);
+			}, Comparator.nullsFirst(GERMAN)),
 			new Form("of(a comparator of ? super T) in a generic method",
-				"Comparator<T> c = NullCheckComparator.of(comparator);",
-				"Comparator<T> c = Comparator.nullsFirst(comparator);",
-				"incompatible types: inference variable T has incompatible equality constraints "
-					+ "T,capture#1 of ? super T"));
+				names -> names.sort(NullCheckComparatorWildcardTest.<String> nullSafe(BY_LENGTH)),
+				Comparator.nullsFirst(BY_LENGTH)));
 	}
 
 	/**
-	 * Test that the forms of {@link #forms()} do not compile with {@link NullCheckComparator},
-	 * which takes the decorated comparator as a {@code Comparator<T>}, where they compile with the
-	 * JDK method
+	 * Test that the forms of {@link #forms()} compile with {@link NullCheckComparator} and sort as
+	 * the JDK comparator does
 	 *
 	 * @param form
-	 *            the statements and the error
-	 * @param directory
-	 *            the directory for the sources and classes
-	 * @throws Exception
-	 *             if the compiler cannot be run
+	 *            the form and the JDK comparator
 	 */
 	@ParameterizedTest(name = "{0}")
 	@MethodSource("forms")
-	public void testTheFormsOfTheJdk(final Form form, @TempDir final Path directory)
-		throws Exception
+	public void testTheFormsOfTheJdk(final Form form)
 	{
-		assertEquals(List.of(), errors(directory, form.jdkStatement()), "the JDK form compiles");
-		assertEquals(List.of(form.error()), errors(directory, form.statement()));
+		final List<String> names = new ArrayList<>(Arrays.asList("bb", null, "a"));
+		final List<String> sortedByTheJdk = new ArrayList<>(names);
+		sortedByTheJdk.sort(form.jdkComparator());
+
+		form.sort().accept(names);
+
+		assertEquals(sortedByTheJdk, names);
 	}
 
 	/**
-	 * Compiles the given statement in a method of a class against the classes of this library and
-	 * returns the first line of each error, in English
+	 * A generic helper that takes a comparator of {@code ? super T}, as
+	 * {@link Comparator#nullsFirst(Comparator)} does, and decorates it with
+	 * {@link NullCheckComparator}
 	 *
-	 * @param directory
-	 *            the directory for the source and the class
-	 * @param statement
-	 *            the statement
-	 * @return the first line of each error
-	 * @throws Exception
-	 *             if the compiler cannot be run
+	 * @param <T>
+	 *            the type of the objects to compare
+	 * @param comparator
+	 *            the comparator of {@code T} or of a supertype of it
+	 * @return the decorated comparator
 	 */
-	private static List<String> errors(final Path directory, final String statement)
-		throws Exception
+	private static <T> Comparator<T> nullSafe(final Comparator<? super T> comparator)
 	{
-		final Path classes = Path.of(
-			NullCheckComparator.class.getProtectionDomain().getCodeSource().getLocation().toURI());
-		final Path output = Files.createTempDirectory(directory, "call");
-		final Path source = Files.writeString(output.resolve("Call.java"),
-			String.join("\n", "import java.text.Collator;", "import java.util.Comparator;",
-				"import java.util.List;",
-				"import io.github.astrapi69.comparator.NullCheckComparator;", "class Call", "{",
-				"	<T> void call(List<String> names, Comparator<CharSequence> byLength,",
-				"		Collator german, Comparator<? super T> comparator)", "	{",
-				"		" + statement, "	}", "}", ""));
-		final JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-		final DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
-		try (StandardJavaFileManager fileManager = compiler.getStandardFileManager(diagnostics,
-			Locale.ROOT, null))
-		{
-			compiler.getTask(null, fileManager, diagnostics,
-				List.of("-proc:none", "-classpath", classes.toString(), "-d", output.toString()),
-				null, fileManager.getJavaFileObjects(source)).call();
-		}
-		return diagnostics.getDiagnostics().stream()
-			.filter(diagnostic -> diagnostic.getKind() == Diagnostic.Kind.ERROR)
-			.map(diagnostic -> diagnostic.getMessage(Locale.ROOT).lines().findFirst().orElse(""))
-			.collect(Collectors.toList());
+		return NullCheckComparator.of(comparator);
 	}
 
 }
