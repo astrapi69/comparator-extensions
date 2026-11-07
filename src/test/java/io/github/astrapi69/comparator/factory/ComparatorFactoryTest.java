@@ -26,7 +26,6 @@ package io.github.astrapi69.comparator.factory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -476,12 +475,12 @@ public class ComparatorFactoryTest
 	}
 
 	/**
-	 * The calls with a null random and fewer than two elements to order: no element, one, and a map
-	 * whose two values are equal
+	 * The calls with a null random: with no element, one, a map whose two values are equal, and two
+	 * elements to order
 	 *
 	 * @return the cases
 	 */
-	static Stream<NullRandom> nullRandomsForFewerThanTwoElements()
+	static Stream<NullRandom> nullRandoms()
 	{
 		return Stream.of(
 			new NullRandom("newRandomComparator, no element",
@@ -490,35 +489,8 @@ public class ComparatorFactoryTest
 				() -> ComparatorFactory.newRandomComparator(List.of(1), null)),
 			new NullRandom("newRandomMapValuesComparator, no value",
 				() -> ComparatorFactory.newRandomMapValuesComparator(Map.of(), null)),
-			new NullRandom("newRandomMapValuesComparator, two equal values", () -> ComparatorFactory
-				.newRandomMapValuesComparator(Map.of("a", 1, "b", 1), null)));
-	}
-
-	/**
-	 * Test for the methods {@link ComparatorFactory#newRandomComparator(List, SecureRandom)} and
-	 * {@link ComparatorFactory#newRandomMapValuesComparator(Map, SecureRandom)} with a null random
-	 * and fewer than two elements to order: they return a comparator, as
-	 * {@link Collections#shuffle(List, java.util.Random)} calls the random only when there are two
-	 * elements to swap
-	 *
-	 * @param nullRandom
-	 *            the call
-	 */
-	@ParameterizedTest(name = "{0}")
-	@MethodSource("nullRandomsForFewerThanTwoElements")
-	public void testANullRandomForFewerThanTwoElements(final NullRandom nullRandom)
-	{
-		assertNotNull(nullRandom.newComparator().get());
-	}
-
-	/**
-	 * The calls with a null random and two elements to order
-	 *
-	 * @return the cases
-	 */
-	static Stream<NullRandom> nullRandomsForTwoElements()
-	{
-		return Stream.of(
+			new NullRandom("newRandomMapValuesComparator, two equal values",
+				() -> ComparatorFactory.newRandomMapValuesComparator(Map.of("a", 1, "b", 1), null)),
 			new NullRandom("newRandomComparator, two elements",
 				() -> ComparatorFactory.newRandomComparator(List.of(1, 2), null)),
 			new NullRandom("newRandomMapValuesComparator, two values", () -> ComparatorFactory
@@ -527,15 +499,17 @@ public class ComparatorFactoryTest
 
 	/**
 	 * Test for the methods {@link ComparatorFactory#newRandomComparator(List, SecureRandom)} and
-	 * {@link ComparatorFactory#newRandomMapValuesComparator(Map, SecureRandom)} with a null random
-	 * and two elements to order: they throw a {@link NullPointerException} when they shuffle
+	 * {@link ComparatorFactory#newRandomMapValuesComparator(Map, SecureRandom)} with a null random:
+	 * they throw a {@link NullPointerException} whatever the number of elements, where they took
+	 * the null random for fewer than two, as {@link Collections#shuffle(List, java.util.Random)}
+	 * calls the random only when there are two elements to swap (#56)
 	 *
 	 * @param nullRandom
 	 *            the call
 	 */
 	@ParameterizedTest(name = "{0}")
-	@MethodSource("nullRandomsForTwoElements")
-	public void testANullRandomForTwoElements(final NullRandom nullRandom)
+	@MethodSource("nullRandoms")
+	public void testANullRandomThrows(final NullRandom nullRandom)
 	{
 		assertThrows(NullPointerException.class, () -> nullRandom.newComparator().get());
 	}
