@@ -30,7 +30,17 @@ import java.util.Comparator;
 import io.github.astrapi69.comparator.ComparatorExtensions;
 
 /**
- * This class compare two Objects by the hashcode.
+ * The class {@link HashCodeComparator} compares two objects by their hash codes, the smaller hash
+ * code first, and puts null before every object.
+ * <p>
+ * Note: this comparator imposes orderings that are inconsistent with equals. Two objects with the
+ * same hash code compare as 0 even where {@link Object#equals(Object)} tells them apart, as the
+ * strings {@code "Aa"} and {@code "BB"} (hash code 2112) or the longs {@code 0L} and {@code -1L}
+ * (hash code 0). A {@link java.util.TreeSet} or a {@link java.util.TreeMap} ordered by it keeps one
+ * of them only, and its {@code contains}, {@code get} and {@code remove} take the one for the
+ * other, so it does not keep the general contract of {@link java.util.Set} or {@link java.util.Map}
+ * (see {@link Comparator}). It is consistent with equals for a type whose unequal objects never
+ * share a hash code, such as {@link Integer}
  *
  * @param <T>
  *            the generic type
@@ -53,13 +63,15 @@ public class HashCodeComparator<T> implements Comparator<T>, Serializable
 	}
 
 	/**
-	 * Compare two Objects by the hashcode.
+	 * Compares the given objects by their hash codes, null before every object
 	 *
 	 * @param object
 	 *            One Object.
 	 * @param compareWithObject
 	 *            The other Object to compare.
-	 * @return the result.
+	 * @return a negative integer, zero or a positive integer as the hash code of the first object
+	 *         is less than, equal to or greater than the hash code of the second; null is less than
+	 *         every object, and two nulls are equal
 	 * @see java.util.Comparator#compare(Object, Object)
 	 */
 	@Override
