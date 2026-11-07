@@ -226,7 +226,7 @@ tasks.sort(ComparatorFactory.newDefinedOrderComparator(priorities)); // [high, h
 |---|---|
 | (root) | `ComparatorExtensions`: a null-safe `compare`, with or without a `SortOrder`, `isGreater`, `isSmaller` and `isSame`, and the null checks `nullCheck` and `equalNullCheck` for `compare` and `equals` methods. `NullCheckComparator`, a decorator that puts `null` first or last, with a builder; `SortOrderComparator` and the enum `SortOrder`; `ChainableComparator`, a `ComparatorChain` of Commons Collections made by static `of` methods; `CompareOrder`, the results of a `compare` as constants: `BEFORE` (-1), `EQUAL` (0) and `AFTER` (1) |
 | `factory` | `ComparatorFactory`: comparators by a property, from a `Function`; by a defined order, from a `List`; for the values of a map, in their natural or in a random order; and in a random order of a list |
-| `object` | `StringComparator`, with a `SortOrder`; `StringLengthComparator`, by length; `DateComparator` and `DescendingDateComparator`; `LocaleComparator`, by `toString`; `HashCodeComparator`, by `hashCode` |
+| `object` | `StringComparator`, with a `SortOrder`; `StringLengthComparator`, the longer string first, with a `SortOrder` for strings of equal length; `DateComparator`, with a `SortOrder`, and `DescendingDateComparator`, deprecated since 3.2 in favour of `new DateComparator(SortOrder.DESCENDING)`; `LocaleComparator`, by `toString`; `HashCodeComparator`, by `hashCode`, an order inconsistent with `equals` |
 
 The [Javadoc](https://www.javadoc.io/doc/io.github.astrapi69/comparator-extensions) has the
 details.
