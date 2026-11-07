@@ -60,7 +60,7 @@ public class DateComparator implements Comparator<Date>
 	 * {@link DescendingDateComparator} does.
 	 *
 	 * @param sortOrder
-	 *            the sort order
+	 *            the sort order; null is taken as {@link SortOrder#ASCENDING}
 	 */
 	public DateComparator(final SortOrder sortOrder)
 	{

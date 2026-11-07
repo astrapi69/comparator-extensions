@@ -26,11 +26,11 @@ that the tests notice when the code changes.
 It gathers what comes up wherever objects are compared and `null` may turn up: a `compare` that
 accepts `null`, with `isGreater`, `isSmaller` and `isSame` on top; the null checks a `compare` or
 an `equals` method starts with; a `SortOrder` that carries ascending or descending as a value, from
-a setting or a request; comparators for strings, dates and locales that place `null` themselves; a
-comparator for an order that a list gives; and `ChainableComparator`, the `ComparatorChain` of
-Apache Commons Collections made by static `of` methods. Commons Collections is its one
-dependency. silly-collection, silly-strings, file-worker and jobj-compare of this family build on
-it.
+a setting or a request; comparators for dates that place `null` themselves, and for strings and
+locales whose `of` factories do; a comparator for an order that a list gives; and
+`ChainableComparator`, the `ComparatorChain` of Apache Commons Collections made by static `of`
+methods. Commons Collections is its one dependency. silly-collection, silly-strings, file-worker
+and jobj-compare of this family build on it.
 
 If chaining, reversing and placing `null` is all you need, the JDK is enough: since Java 8
 `Comparator` has `comparing`, `thenComparing`, `reversed`, `reverseOrder`, `nullsFirst` and
@@ -162,9 +162,12 @@ names.sort(NullCheckComparator.of(alphabetical));       // [null, a, b]
 names.sort(NullCheckComparator.of(alphabetical, true)); // [a, b, null]
 ```
 
-**Comparators for strings, locales and dates.** They place `null` themselves, though not at the
-same end: `StringComparator.of()` puts it last, `LocaleComparator.of()` and `DateComparator`
-first; `StringComparator` and `LocaleComparator` take the choice too, `of(nullIsGreaterThan)`.
+**Comparators for strings, locales and dates.** Made by `of()`, the string and locale comparators
+place `null` themselves, as the date comparators do, though not at the same end:
+`StringComparator.of()` puts it last, `LocaleComparator.of()` and `DateComparator` first;
+`StringComparator` and `LocaleComparator` take the choice too, `of(nullIsGreaterThan)`. The
+constructors of `StringLengthComparator` and `LocaleComparator` throw a `NullPointerException` for
+`null`, and a `null` `SortOrder` is taken as ascending.
 
 ```java
 List<String> words = new ArrayList<>(Arrays.asList("b", null, "a"));
