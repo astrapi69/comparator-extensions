@@ -50,7 +50,8 @@ public class StringLengthComparator extends SortOrderComparator<String>
 	/**
 	 * Instantiates a new {@link StringLengthComparator} with the default sort order
 	 * {@link SortOrder#ASCENDING}: the longer string comes first, and strings of equal length come
-	 * in their natural order.
+	 * in their natural order. It throws a {@link NullPointerException} when comparing null; the
+	 * {@code of} factories place null.
 	 */
 	public StringLengthComparator()
 	{
@@ -60,10 +61,12 @@ public class StringLengthComparator extends SortOrderComparator<String>
 	 * Instantiates a new {@link StringLengthComparator} with the given sort order, which decides
 	 * between strings of equal length only: the longer string comes first in either sort order, and
 	 * strings of equal length come in their natural order with {@link SortOrder#ASCENDING} and in
-	 * the reverse of it with {@link SortOrder#DESCENDING}.
+	 * the reverse of it with {@link SortOrder#DESCENDING}. It throws a {@link NullPointerException}
+	 * when comparing null; the {@code of} factories place null.
 	 *
 	 * @param sortOrder
-	 *            the sort order of strings of equal length
+	 *            the sort order of strings of equal length; null is taken as
+	 *            {@link SortOrder#ASCENDING}
 	 */
 	public StringLengthComparator(final SortOrder sortOrder)
 	{
@@ -107,7 +110,8 @@ public class StringLengthComparator extends SortOrderComparator<String>
 	 * {@link SortOrder#DESCENDING}, and null comes last in either sort order.
 	 *
 	 * @param sortOrder
-	 *            the sort order of strings of equal length
+	 *            the sort order of strings of equal length; null is taken as
+	 *            {@link SortOrder#ASCENDING}
 	 * @return a new {@link NullCheckComparator} that decorates a new {@link StringLengthComparator}
 	 */
 	public static Comparator<String> of(final SortOrder sortOrder)
@@ -124,7 +128,8 @@ public class StringLengthComparator extends SortOrderComparator<String>
 	 * null comes last or first as the given flag says, in either sort order.
 	 *
 	 * @param sortOrder
-	 *            the sort order of strings of equal length
+	 *            the sort order of strings of equal length; null is taken as
+	 *            {@link SortOrder#ASCENDING}
 	 * @param nullIsGreaterThan
 	 *            the flag that specifies if null is greater than a non-null string
 	 * @return a new {@link NullCheckComparator} that decorates a new {@link StringLengthComparator}

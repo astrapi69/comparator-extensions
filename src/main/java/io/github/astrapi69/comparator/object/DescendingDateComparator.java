@@ -31,14 +31,15 @@ import io.github.astrapi69.comparator.ComparatorExtensions;
 import io.github.astrapi69.comparator.SortOrder;
 
 /**
- * The class DescendingDateComparator sorts Date object in descending order.
+ * The class {@link DescendingDateComparator} sorts {@link Date} objects in descending order, the
+ * later date first and null last, as {@code new DateComparator(SortOrder.DESCENDING)} does.
  */
 public class DescendingDateComparator implements Comparator<Date>
 {
 
 	/**
 	 * Instantiates a new {@link DescendingDateComparator}, which sorts {@link Date} objects in
-	 * descending order.
+	 * descending order, the later date first and null last.
 	 */
 	public DescendingDateComparator()
 	{
