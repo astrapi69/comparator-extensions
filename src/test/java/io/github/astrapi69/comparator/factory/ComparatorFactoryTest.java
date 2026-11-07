@@ -26,7 +26,6 @@ package io.github.astrapi69.comparator.factory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
@@ -53,8 +52,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.meanbean.test.BeanTester;
-
-import com.google.common.collect.Lists;
 
 import io.github.astrapi69.test.object.Employee;
 
@@ -95,28 +92,22 @@ public class ComparatorFactoryTest
 	private static final BigDecimal HALF = new BigDecimal("0.5");
 
 	/**
-	 * Test for method {@link ComparatorFactory#newDefinedOrderComparator(List)}
+	 * Test for method {@link ComparatorFactory#newDefinedOrderComparator(List)} with a fixed order
+	 * that is not the natural one: the comparator sorts the numbers 1 to 5 in that order. A
+	 * shuffled order without a seed left the numbers in their natural order once in 120 runs, and
+	 * the test then held for the natural order too (#58)
 	 */
 	@Test
 	public void testNewDefinedOrderComparator()
 	{
-		List<Integer> values;
-		List<Integer> actual;
-		List<Integer> expected;
-		Comparator<Integer> customComparator;
-		// new scenario...
-		values = Lists.newArrayList(1, 2, 3, 4, 5);
-		// change list to random sort order
-		Collections.shuffle(values);
-		// create the custom Comparator from the given list
-		customComparator = ComparatorFactory.newDefinedOrderComparator(values);
-		// create a new list to sort with the custom Comparator
-		actual = Lists.newArrayList(1, 2, 3, 4, 5);
-		// sort with the custom Comparator
-		actual.sort(customComparator);
-		// now the actual list have to be sorted as the values list
-		expected = values;
-		assertEquals(actual, expected);
+		final List<Integer> definedOrder = List.of(3, 1, 5, 2, 4);
+		final Comparator<Integer> comparator = ComparatorFactory
+			.newDefinedOrderComparator(definedOrder);
+
+		assertEquals(definedOrder, sortedBy(comparator, List.of(1, 2, 3, 4, 5)));
+		assertTrue(comparator.compare(3, 1) < 0, "3 before 1");
+		assertTrue(comparator.compare(4, 2) > 0, "4 after 2");
+		assertEquals(0, comparator.compare(5, 5), "5 with 5");
 	}
 
 	/**
@@ -555,20 +546,28 @@ public class ComparatorFactoryTest
 	}
 
 	/**
-	 * Test for method {@link ComparatorFactory#newMapValuesComparator(Map)}
+	 * Test for method {@link ComparatorFactory#newMapValuesComparator(Map)} with a map whose values
+	 * are neither sorted nor free of repeats: the comparator sorts them in their natural order. The
+	 * test calls the comparator itself too, as {@link List#sort(Comparator)} takes a null
+	 * comparator as the natural order. It asserted only that a comparator came back, on a map whose
+	 * values were all 0, and passed for any comparator (#58)
 	 */
 	@Test
 	public void testNewMapValuesComparator()
 	{
+		final Map<String, Integer> numbersByName = new LinkedHashMap<>();
+		numbersByName.put("three", 3);
+		numbersByName.put("one", 1);
+		numbersByName.put("two", 2);
+		numbersByName.put("three again", 3);
+		final Comparator<Integer> comparator = ComparatorFactory
+			.newMapValuesComparator(numbersByName);
 
-		List<Integer> values;
-		Map<Integer, Integer> numberCounterMap;
-		Comparator<Integer> integerComparator;
-		// new scenario...
-		values = Lists.newArrayList(1, 2, 3, 4, 5);
-		numberCounterMap = TestDataFactory.newCounterMap(new HashMap<>(), values);
-		integerComparator = ComparatorFactory.newMapValuesComparator(numberCounterMap);
-		assertNotNull(integerComparator);
+		assertEquals(List.of(1, 2, 3, 3),
+			sortedBy(comparator, new ArrayList<>(numbersByName.values())));
+		assertTrue(comparator.compare(1, 2) < 0, "1 before 2");
+		assertTrue(comparator.compare(3, 2) > 0, "3 after 2");
+		assertEquals(0, comparator.compare(3, 3), "3 with 3");
 	}
 
 	/**
