@@ -64,6 +64,14 @@ test {
     jvmArgumentProviders.add(publishedPomTestArguments)
 }
 
+// The JaCoCo version comes from the version catalog, as the versions of PIT do, so that
+// versionCatalogUpdate moves it and a Gradle upgrade does not: without it the build takes the version
+// Gradle bundles (0.8.15 with Gradle 9.8.2), and the floor below would measure with a tool that a
+// wrapper change picks (#66)
+jacoco {
+    toolVersion = libs.versions.jacoco.version.get()
+}
+
 jacocoTestReport {
     reports {
         xml.required.set(true)
@@ -71,12 +79,13 @@ jacocoTestReport {
     }
 }
 
-// Coverage floor the build fails below (#21). Measured on 2026-11-05: 135 of 135 lines and 38 of 38
-// branches, 100 % each. The floor is each measure minus about two points, rounded down, as for the
-// mutation score in build.gradle: a few lines that a new method's tests do not reach yet do not fail
-// the build at once, a drop of more than about two points does. With the 135 lines of today it fails
-// from 3 missed lines on; with the 38 branches from the first missed branch, as one branch is 2.6
-// points (37 of 38 is 97.4 %).
+// Coverage floor the build fails below (#21), set when every line and every branch was covered,
+// 100 % each; the numbers of a release are in its CHANGELOG entry, measured by its release gate. The
+// floor is each measure minus about two points, rounded down, as for the mutation score in
+// build.gradle: a few lines that the tests of a new method do not reach yet do not fail the build at
+// once, a drop of more than about two points does. Of 100 to 149 lines it fails from 3 missed lines
+// on; of fewer than 50 branches from the first missed branch, as one branch is then more than 2
+// points.
 jacocoTestCoverageVerification {
     violationRules {
         rule {
