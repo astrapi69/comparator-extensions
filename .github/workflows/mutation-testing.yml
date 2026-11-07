@@ -16,11 +16,15 @@ on:
 permissions:
   contents: read
 
-# a newer push to the same pull request replaces a running one; on develop and main every push runs,
-# as each one publishes its badge
+# One group per commit, so that every commit gets its own run: in a group per branch GitHub keeps
+# one running and one pending run, and a third push cancelled the pending one, so a merge commit of
+# develop could end up without a run, while the release gate takes PIT's numbers from the run on the
+# merge commit (README.md, "Releasing"). Decided by the maintainer on 2026-11-05 (#70), as in
+# astrapi69/silly-collection#103. The publication of the badge below keeps its own group per
+# branch.
 concurrency:
-  group: mutation-testing-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: mutation-testing-${{ github.sha }}
+  cancel-in-progress: false
 
 jobs:
   pitest:

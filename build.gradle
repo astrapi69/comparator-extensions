@@ -27,13 +27,14 @@ description = "$rootProject.name"
 // import gradle files
 apply from: "gradle/apply-gradle-files.gradle"
 
-// Mutation-score floor the CI build fails below: .github/workflows/gradle.yml runs `./gradlew pitest`
-// after the build; PIT rounds the score half up to a whole percent before it compares, and holds it
-// at 99 while a mutant survives. Measured 100 % (83 of 83 mutants killed) on 2026-11-05 (#21), up from
-// 76 of 83, 91.6 %. The floor is that score minus about two points, rounded down: a few mutants more
-// that survive, such as those of a new method whose tests are not complete yet, do not fail the build
-// at once, a drop of more than about two points does. With the 83 mutants of today it fails from 3
-// survivors on: 81 of 83 is 97.6 %, which PIT rounds to 98, 80 of 83 is 96.4 %.
+// Mutation-score floor that PIT fails below: .github/workflows/mutation-testing.yml runs
+// `./gradlew pitest` on GitHub, in a run of its own (#33); PIT rounds the score half up to a whole
+// percent before it compares, and holds it at 99 while a mutant survives. Set on 2026-11-05 (#21),
+// when the tests killed every mutant, 100 %, up from 91.6 %; the numbers of a release are in its
+// CHANGELOG entry, from the run on its merge commit. The floor is that score minus about two
+// points, rounded down: a few mutants more that survive, such as those of a new method whose tests
+// are not complete yet, do not fail the build at once, a drop of more than about two points does.
+// Of 80 to 119 mutants it fails from 3 survivors on, as 97.5 % is what PIT still rounds to 98.
 // Kept here, not in gradle/mutation-testing.gradle, so that the floor sits in the file a reader
 // (and awesome-well-tested's check) looks at.
 pitest {

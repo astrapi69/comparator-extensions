@@ -7,7 +7,8 @@ checks against mutationThreshold, so the badge shows the number the build was he
 below mutationThreshold of build.gradle is red whatever its number, as the run fails then; a score
 at or above it, or any score of a build.gradle without a floor, takes the color of its number
 (#68). The badge follows https://shields.io/badges/endpoint-badge; README.md reads it from the
-gh-pages branch, to which .github/workflows/gradle.yml publishes it on a push to develop or master.
+gh-pages branch, to which the job publish-badges of .github/workflows/mutation-testing.yml
+publishes it on a push to develop or main.
 """
 
 import json
