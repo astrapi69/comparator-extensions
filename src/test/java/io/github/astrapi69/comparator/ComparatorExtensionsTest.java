@@ -201,6 +201,8 @@ public class ComparatorExtensionsTest
 	 *
 	 * @return the comparisons
 	 */
+	@SuppressWarnings("deprecation") // DescendingDateComparator is tested as long as it is there
+										// (#62)
 	static Stream<SignedComparison> sortOrderComparisons()
 	{
 		final Rank one = new Rank(1);

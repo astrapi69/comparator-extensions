@@ -35,7 +35,8 @@ import io.github.astrapi69.comparator.SortOrder;
  * earlier date and null first, or in descending order, the later date first and null last, if it is
  * created with {@link SortOrder#DESCENDING} by {@link #DateComparator(SortOrder)}. It compares as
  * {@link ComparatorExtensions#compare(Comparable, Comparable, SortOrder)} does, so
- * {@code new DateComparator(SortOrder.DESCENDING)} sorts as {@link DescendingDateComparator}.
+ * {@code new DateComparator(SortOrder.DESCENDING)} sorts as {@link DescendingDateComparator}, which
+ * is deprecated since 3.2 in favour of it.
  */
 public class DateComparator implements Comparator<Date>
 {

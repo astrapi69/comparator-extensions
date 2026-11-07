@@ -33,7 +33,12 @@ import io.github.astrapi69.comparator.SortOrder;
 /**
  * The class {@link DescendingDateComparator} sorts {@link Date} objects in descending order, the
  * later date first and null last, as {@code new DateComparator(SortOrder.DESCENDING)} does.
+ *
+ * @deprecated use {@link DateComparator#DateComparator(SortOrder)} with
+ *             {@link SortOrder#DESCENDING}, which sorts the same: the later date first and null
+ *             last
  */
+@Deprecated(since = "3.2")
 public class DescendingDateComparator implements Comparator<Date>
 {
 
