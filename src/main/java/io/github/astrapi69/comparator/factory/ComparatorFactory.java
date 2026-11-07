@@ -143,6 +143,8 @@ public class ComparatorFactory
 	 *            the elements that the comparator orders in a random order; the method copies it
 	 *            and does not change it
 	 * @return the comparator
+	 * @throws NullPointerException
+	 *             if the list is null
 	 */
 	public static <T> Comparator<T> newRandomComparator(final List<T> list)
 	{
@@ -166,25 +168,29 @@ public class ComparatorFactory
 	 * @param secureRandom
 	 *            the secure random object for random generation
 	 * @return the comparator
+	 * @throws NullPointerException
+	 *             if the list or the secure random is null, whatever the size of the list
 	 */
 	public static <T> Comparator<T> newRandomComparator(final List<T> list,
 		SecureRandom secureRandom)
 	{
 		Objects.requireNonNull(list);
+		Objects.requireNonNull(secureRandom);
 		final List<T> shuffled = new ArrayList<>(list);
 		Collections.shuffle(shuffled, secureRandom);
 		return Comparator.comparing(shuffled::indexOf);
 	}
 
 	/**
-	 * Factory method for create a comparator for random sort of map values. The comparator takes
-	 * the values of the map when it is made, so a later change of the map does not change it. It
-	 * orders the values that are equal by {@link Comparable#compareTo(Object)} as one value, as a
-	 * {@link TreeSet} keeps them, so a value that is equal to another by compareTo but not by
-	 * {@link Object#equals(Object)}, as the {@link java.math.BigDecimal} 1.00 is to 1.0, takes the
-	 * position of that other value. A value that is not a value of the map compares as smaller than
-	 * every value of the map and as equal to every other such value, as for
-	 * {@link #newDefinedOrderComparator(List)}
+	 * Factory method for create a comparator for random sort of map values. The values must
+	 * implement {@link Comparable} and be mutually comparable, as the elements of
+	 * {@link TreeSet#TreeSet(Collection)} must be. The comparator takes the values of the map when
+	 * it is made, so a later change of the map does not change it. It orders the values that are
+	 * equal by {@link Comparable#compareTo(Object)} as one value, as a {@link TreeSet} keeps them,
+	 * so a value that is equal to another by compareTo but not by {@link Object#equals(Object)}, as
+	 * the {@link java.math.BigDecimal} 1.00 is to 1.0, takes the position of that other value. A
+	 * value that is not a value of the map compares as smaller than every value of the map and as
+	 * equal to every other such value, as for {@link #newDefinedOrderComparator(List)}
 	 *
 	 * @param <K>
 	 *            the generic type of the key
@@ -195,23 +201,33 @@ public class ComparatorFactory
 	 * @param secureRandom
 	 *            the secure random object for random generation
 	 * @return the comparator with random sort of map values
+	 * @throws NullPointerException
+	 *             if the map or the secure random is null, whatever the size of the map, or if the
+	 *             map holds a null value
+	 * @throws ClassCastException
+	 *             if the values of the map are not {@link Comparable}, or are not mutually
+	 *             comparable
 	 */
 	public static <K, V> Comparator<V> newRandomMapValuesComparator(Map<K, V> map,
 		SecureRandom secureRandom)
 	{
+		Objects.requireNonNull(map);
+		Objects.requireNonNull(secureRandom);
 		final List<V> order = new ArrayList<>(new TreeSet<>(map.values()));
 		Collections.shuffle(order, secureRandom);
 		return comparingInTheOrderOfTheirEquals(map.values(), order);
 	}
 
 	/**
-	 * Factory method for create a comparator for sort with the map values. The comparator takes the
-	 * values of the map when it is made, so a later change of the map does not change it. It orders
-	 * the values in their natural order, as a {@link TreeSet} does, so a value that is equal to
-	 * another by {@link Comparable#compareTo(Object)} but not by {@link Object#equals(Object)}, as
-	 * the {@link java.math.BigDecimal} 1.00 is to 1.0, compares as equal to that other value. A
-	 * value that is not a value of the map compares as smaller than every value of the map and as
-	 * equal to every other such value, as for {@link #newDefinedOrderComparator(List)}
+	 * Factory method for create a comparator for sort with the map values. The values must
+	 * implement {@link Comparable} and be mutually comparable, as the elements of
+	 * {@link TreeSet#TreeSet(Collection)} must be. The comparator takes the values of the map when
+	 * it is made, so a later change of the map does not change it. It orders the values in their
+	 * natural order, as a {@link TreeSet} does, so a value that is equal to another by
+	 * {@link Comparable#compareTo(Object)} but not by {@link Object#equals(Object)}, as the
+	 * {@link java.math.BigDecimal} 1.00 is to 1.0, compares as equal to that other value. A value
+	 * that is not a value of the map compares as smaller than every value of the map and as equal
+	 * to every other such value, as for {@link #newDefinedOrderComparator(List)}
 	 *
 	 * @param <K>
 	 *            the generic type of the key
@@ -220,9 +236,15 @@ public class ComparatorFactory
 	 * @param map
 	 *            the map
 	 * @return the comparator for sort with the map values
+	 * @throws NullPointerException
+	 *             if the map is null or holds a null value
+	 * @throws ClassCastException
+	 *             if the values of the map are not {@link Comparable}, or are not mutually
+	 *             comparable
 	 */
 	public static <K, V> Comparator<V> newMapValuesComparator(Map<K, V> map)
 	{
+		Objects.requireNonNull(map);
 		return comparingInTheOrderOfTheirEquals(map.values(),
 			new ArrayList<>(new TreeSet<>(map.values())));
 	}
