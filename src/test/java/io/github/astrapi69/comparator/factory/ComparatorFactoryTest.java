@@ -29,6 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.math.BigDecimal;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
@@ -37,6 +38,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
@@ -49,6 +51,7 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.meanbean.test.BeanTester;
 
 import com.google.common.collect.Lists;
@@ -72,6 +75,24 @@ public class ComparatorFactoryTest
 	 * order is shuffled without a seed
 	 */
 	private static final List<Integer> ONE_TO_FIFTY = IntStream.rangeClosed(1, 50).boxed().toList();
+
+	/**
+	 * The number 1.0, equal to {@link #ONE_POINT_ZERO_ZERO} by
+	 * {@link BigDecimal#compareTo(BigDecimal)}, but not by {@link BigDecimal#equals(Object)}, which
+	 * compares the scale too
+	 */
+	private static final BigDecimal ONE_POINT_ZERO = new BigDecimal("1.0");
+
+	/**
+	 * The number 1.00, equal to {@link #ONE_POINT_ZERO} by
+	 * {@link BigDecimal#compareTo(BigDecimal)}, but not by {@link BigDecimal#equals(Object)}
+	 */
+	private static final BigDecimal ONE_POINT_ZERO_ZERO = new BigDecimal("1.00");
+
+	/**
+	 * The number 0.5, smaller than {@link #ONE_POINT_ZERO} and {@link #ONE_POINT_ZERO_ZERO}
+	 */
+	private static final BigDecimal HALF = new BigDecimal("0.5");
 
 	/**
 	 * Test for method {@link ComparatorFactory#newDefinedOrderComparator(List)}
@@ -272,6 +293,116 @@ public class ComparatorFactoryTest
 
 		assertTrue(comparator.compare(50, 3) < 0, "50 is not in the order");
 		assertTrue(comparator.compare(1, 99) > 0, "1 is in the order");
+	}
+
+	/**
+	 * The values of a map, in the order the map iterates them, of which two are equal by
+	 * {@link BigDecimal#compareTo(BigDecimal)} but not by {@link BigDecimal#equals(Object)}, and
+	 * how the comparator of {@link ComparatorFactory#newMapValuesComparator(Map)} orders them
+	 *
+	 * @param description
+	 *            the name of the case
+	 * @param values
+	 *            the values of the map, in the order the map iterates them
+	 * @param sortedValues
+	 *            the values sorted with the comparator
+	 * @param signOfTheTwoOnes
+	 *            the sign of the comparison of {@link #ONE_POINT_ZERO_ZERO} with
+	 *            {@link #ONE_POINT_ZERO}
+	 */
+	record ValuesEqualByCompareTo(String description, List<BigDecimal> values,
+		List<BigDecimal> sortedValues, int signOfTheTwoOnes) {
+		@Override
+		public String toString()
+		{
+			return description;
+		}
+	}
+
+	/**
+	 * The numbers 1.0, 1.00 and 0.5 as the values of a map, in two iteration orders: the two ones
+	 * take one position, the one of the {@link TreeSet} that collapses the values, so the values
+	 * come in their natural order, the two ones in the order of the map, as a stable sort keeps
+	 * equal elements (#57)
+	 *
+	 * @return the cases
+	 */
+	static Stream<ValuesEqualByCompareTo> valuesEqualByCompareTo()
+	{
+		return Stream.of(
+			new ValuesEqualByCompareTo("1.0 first: the natural order, 1.0 before 1.00",
+				List.of(ONE_POINT_ZERO, ONE_POINT_ZERO_ZERO, HALF),
+				List.of(HALF, ONE_POINT_ZERO, ONE_POINT_ZERO_ZERO), 0),
+			new ValuesEqualByCompareTo("1.00 first: the natural order, 1.00 before 1.0",
+				List.of(ONE_POINT_ZERO_ZERO, ONE_POINT_ZERO, HALF),
+				List.of(HALF, ONE_POINT_ZERO_ZERO, ONE_POINT_ZERO), 0));
+	}
+
+	/**
+	 * Test for method {@link ComparatorFactory#newMapValuesComparator(Map)} with two values that
+	 * are equal by {@link BigDecimal#compareTo(BigDecimal)} but not by
+	 * {@link BigDecimal#equals(Object)}
+	 *
+	 * @param values
+	 *            the values of the map and how the comparator orders them
+	 */
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("valuesEqualByCompareTo")
+	public void testNewMapValuesComparatorWithValuesEqualByCompareTo(
+		final ValuesEqualByCompareTo values)
+	{
+		final Comparator<BigDecimal> comparator = ComparatorFactory
+			.newMapValuesComparator(mapOf(values.values()));
+
+		assertEquals(values.sortedValues(), sortedBy(comparator, values.values()));
+		assertEquals(sortedBy(Comparator.naturalOrder(), values.values()), values.sortedValues(),
+			"the natural order");
+		assertEquals(values.signOfTheTwoOnes(),
+			Integer.signum(comparator.compare(ONE_POINT_ZERO_ZERO, ONE_POINT_ZERO)),
+			"1.00 with 1.0");
+	}
+
+	/**
+	 * Test for method {@link ComparatorFactory#newRandomMapValuesComparator(Map, SecureRandom)}
+	 * with the values 1.0, 1.00 and 0.5, which the map iterates in this order: 1.00 takes the
+	 * position of 1.0, which the {@link TreeSet} that collapses the values keeps in its place,
+	 * whatever the seed (#57)
+	 *
+	 * @param seed
+	 *            the seed of the random
+	 * @throws NoSuchAlgorithmException
+	 *             if the SUN provider has no SHA1PRNG, which it has in the JDK
+	 * @throws NoSuchProviderException
+	 *             if the JDK has no SUN provider
+	 */
+	@ParameterizedTest(name = "seed {0}")
+	@ValueSource(longs = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 })
+	public void testNewRandomMapValuesComparatorWithValuesEqualByCompareTo(final long seed)
+		throws NoSuchAlgorithmException, NoSuchProviderException
+	{
+		final Comparator<BigDecimal> comparator = ComparatorFactory.newRandomMapValuesComparator(
+			mapOf(List.of(ONE_POINT_ZERO, ONE_POINT_ZERO_ZERO, HALF)), seeded(seed));
+
+		assertEquals(0, comparator.compare(ONE_POINT_ZERO_ZERO, ONE_POINT_ZERO), "1.00 as 1.0");
+		assertEquals(Integer.signum(comparator.compare(ONE_POINT_ZERO, HALF)),
+			Integer.signum(comparator.compare(ONE_POINT_ZERO_ZERO, HALF)), "1.00 with 0.5 as 1.0");
+	}
+
+	/**
+	 * Makes a map whose values are the given values, in their order
+	 *
+	 * @param values
+	 *            the values
+	 * @return the map, which iterates the values in the order given
+	 */
+	private static Map<String, BigDecimal> mapOf(final List<BigDecimal> values)
+	{
+		final Map<String, BigDecimal> map = new LinkedHashMap<>();
+		for (final BigDecimal value : values)
+		{
+			map.put("value " + map.size(), value);
+		}
+		return map;
 	}
 
 	/**

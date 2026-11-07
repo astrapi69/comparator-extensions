@@ -26,12 +26,14 @@ package io.github.astrapi69.comparator.factory;
 
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.function.Function;
 
@@ -123,7 +125,7 @@ public class ComparatorFactory
 		{
 			positions.putIfAbsent(element, position++);
 		}
-		return Comparator.comparingInt(element -> positions.getOrDefault(element, -1));
+		return comparingByPosition(positions);
 	}
 
 	/**
@@ -176,9 +178,13 @@ public class ComparatorFactory
 
 	/**
 	 * Factory method for create a comparator for random sort of map values. The comparator takes
-	 * the values of the map when it is made, so a later change of the map does not change it. A
-	 * value that is not a value of the map compares as smaller than every value of the map and as
-	 * equal to every other such value, as for {@link #newDefinedOrderComparator(List)}
+	 * the values of the map when it is made, so a later change of the map does not change it. It
+	 * orders the values that are equal by {@link Comparable#compareTo(Object)} as one value, as a
+	 * {@link TreeSet} keeps them, so a value that is equal to another by compareTo but not by
+	 * {@link Object#equals(Object)}, as the {@link java.math.BigDecimal} 1.00 is to 1.0, takes the
+	 * position of that other value. A value that is not a value of the map compares as smaller than
+	 * every value of the map and as equal to every other such value, as for
+	 * {@link #newDefinedOrderComparator(List)}
 	 *
 	 * @param <K>
 	 *            the generic type of the key
@@ -193,16 +199,19 @@ public class ComparatorFactory
 	public static <K, V> Comparator<V> newRandomMapValuesComparator(Map<K, V> map,
 		SecureRandom secureRandom)
 	{
-		List<V> numberCounterValues = new ArrayList<>(new TreeSet<>(map.values()));
-		Collections.shuffle(numberCounterValues, secureRandom);
-		return ComparatorFactory.newDefinedOrderComparator(numberCounterValues);
+		final List<V> order = new ArrayList<>(new TreeSet<>(map.values()));
+		Collections.shuffle(order, secureRandom);
+		return comparingInTheOrderOfTheirEquals(map.values(), order);
 	}
 
 	/**
 	 * Factory method for create a comparator for sort with the map values. The comparator takes the
-	 * values of the map when it is made, so a later change of the map does not change it. A value
-	 * that is not a value of the map compares as smaller than every value of the map and as equal
-	 * to every other such value, as for {@link #newDefinedOrderComparator(List)}
+	 * values of the map when it is made, so a later change of the map does not change it. It orders
+	 * the values in their natural order, as a {@link TreeSet} does, so a value that is equal to
+	 * another by {@link Comparable#compareTo(Object)} but not by {@link Object#equals(Object)}, as
+	 * the {@link java.math.BigDecimal} 1.00 is to 1.0, compares as equal to that other value. A
+	 * value that is not a value of the map compares as smaller than every value of the map and as
+	 * equal to every other such value, as for {@link #newDefinedOrderComparator(List)}
 	 *
 	 * @param <K>
 	 *            the generic type of the key
@@ -214,8 +223,56 @@ public class ComparatorFactory
 	 */
 	public static <K, V> Comparator<V> newMapValuesComparator(Map<K, V> map)
 	{
-		List<V> numberCounterValues = new ArrayList<>(new TreeSet<>(map.values()));
-		return ComparatorFactory.newDefinedOrderComparator(numberCounterValues);
+		return comparingInTheOrderOfTheirEquals(map.values(),
+			new ArrayList<>(new TreeSet<>(map.values())));
+	}
+
+	/**
+	 * Makes a comparator of the given values in the given order of the values that a
+	 * {@link TreeSet} keeps of them: a value takes the position of the value of the order that is
+	 * equal to it by {@link Comparable#compareTo(Object)}, which is the value itself or one that
+	 * the {@link TreeSet} kept in its place. It finds a value as a {@link HashMap} finds a key, as
+	 * {@link #newDefinedOrderComparator(List)} does, so an object that is not one of the given
+	 * values takes the position -1 and compares as smaller than every one of them
+	 *
+	 * @param <V>
+	 *            the generic type of the values
+	 * @param values
+	 *            the values
+	 * @param order
+	 *            the values that a {@link TreeSet} of the given values keeps, in the order of the
+	 *            comparator
+	 * @return the comparator
+	 */
+	private static <V> Comparator<V> comparingInTheOrderOfTheirEquals(final Collection<V> values,
+		final List<V> order)
+	{
+		final Map<V, Integer> positionsInTheOrder = new TreeMap<>();
+		for (int position = 0; position < order.size(); position++)
+		{
+			positionsInTheOrder.put(order.get(position), position);
+		}
+		final Map<V, Integer> positions = new HashMap<>();
+		for (final V value : values)
+		{
+			positions.putIfAbsent(value, positionsInTheOrder.get(value));
+		}
+		return comparingByPosition(positions);
+	}
+
+	/**
+	 * Makes a comparator by the given positions: an object compares by its position, and an object
+	 * that has none by the position -1, before every object that has one
+	 *
+	 * @param <T>
+	 *            the generic type of the objects
+	 * @param positions
+	 *            the position of each object
+	 * @return the comparator
+	 */
+	private static <T> Comparator<T> comparingByPosition(final Map<T, Integer> positions)
+	{
+		return Comparator.comparingInt(object -> positions.getOrDefault(object, -1));
 	}
 
 }
